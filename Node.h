@@ -21,10 +21,10 @@
 class Node
 {
 public:
-    Node(const int16_t & id, Node * parent=NULL, Node * leftChild=NULL, Node * rightChild=NULL);
+    Node(const uint16_t & id);
     virtual ~Node();
     
-    int16_t getID();
+    uint16_t getID();
     void setID(const uint16_t & id);
     Node * getParent();
     void setParent(Node * node);
@@ -34,7 +34,7 @@ public:
     void setRightChild(Node * node);
 
 private:
-    int16_t id;
+    uint16_t id;
     Node * parent;
     Node * leftChild;
     Node * rightChild;

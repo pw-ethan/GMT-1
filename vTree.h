@@ -20,6 +20,7 @@
 #include "Node.h"
 
 using namespace NTL;
+using namespace std;
 
 class vTree
 {
@@ -27,21 +28,22 @@ public:
     vTree(const uint16_t depth=4);
     virtual ~vTree();
 
-    ZZ getEvidence();
-    void setEvidence(const ZZ & value);
-    uint16_t getDepth();
-    void setDepth(const uint16_t & depth);
-    uint16_t getNumElems();
-    void setNumElems(const uint16_t & numElems);
-    Node * getRoot();
-    
+    //ZZ getEvidence();
+    //void setEvidence(const ZZ & value);
+    //uint16_t getDepth();
+    //void setDepth(const uint16_t & depth);
+    //uint16_t getNumElems();
+    //void setNumElems(const uint16_t & numElems);
+    //Node * getRoot();
+    //void insertWeight(const uint16_t & id, const ZZ & value);
 
 private:
     ZZ evidence;
     uint16_t depth;
     uint16_t numElems;
     Node * root;
+    uint16_t maxElems;
 
 private:
-    void deleteTree(Node * root);
+//    void deleteTree(Node * root);
 };

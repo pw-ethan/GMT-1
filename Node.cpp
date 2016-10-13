@@ -21,18 +21,18 @@
 using namespace std;
 
 
-Node::Node(const int16_t & id, Node * parent, Node * leftChild, Node * rightChild){
+Node::Node(const uint16_t & id){
     this->id = id;
-    this->parent = parent;
-    this->leftChild = leftChild;
-    this->rightChild = rightChild;
+    this->parent = NULL;
+    this->leftChild = NULL;
+    this->rightChild = NULL;
 }
 
 Node::~Node(){
     cout << "~Node()" << endl;
 }
 
-int16_t Node::getID(){
+uint16_t Node::getID(){
     return this->id;
 }
 

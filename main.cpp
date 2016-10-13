@@ -1,6 +1,6 @@
 #include <iostream>
 #include <NTL/ZZ.h>
-
+#include <time.h>
 
 #include "crypto_fhe_utility.h"
 #include "v_tree.h"
@@ -8,18 +8,22 @@
 #include "auth_ds.h"
 #include "MyDB.h"
 #include "memory_dump.h"
-#include "vTree.h"
+#include "Node.h"
 
 using namespace std;
 using namespace NTL;
 
 int main()
 {
-    vTree * vt = new vTree();
-    cout << vt->getDepth() << endl;
+    clock_t startTime, endTime;
+    startTime = clock();
 
-    delete vt;
-/*
+    Node *node = new Node(12);
+    cout << node->getID() << endl;
+
+    delete node;
+    
+    /*
     // 初始化全同态加密算法，生成公私钥对
     crypto_fhe_utility *cy = new crypto_fhe_utility();
     FHEPubKey *publicKey = cy->getPublicKey();
@@ -133,6 +137,9 @@ int main()
     delete db;
 */
 
+
+    endTime = clock();
+    cout << "\nThe running time of this program is " << (double)(endTime - startTime) / CLOCKS_PER_SEC << " secs." << endl;
     return 0;
 }
 
