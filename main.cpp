@@ -8,14 +8,16 @@
 #include "auth_ds.h"
 #include "MyDB.h"
 #include "memory_dump.h"
-
+#include "Node.h"
 
 using namespace std;
 using namespace NTL;
 
 int main()
 {
-
+    Node *root = new Node(0);
+    cout << root->getRightChild() << endl;
+/*
     // 初始化全同态加密算法，生成公私钥对
     crypto_fhe_utility *cy = new crypto_fhe_utility();
     FHEPubKey *publicKey = cy->getPublicKey();
@@ -108,7 +110,7 @@ int main()
     
     delete cy;
 
-
+*/
 /*
     MyDB *db = new MyDB();
     db->initDB(HOST, USER, PWD, DB_NAME);
