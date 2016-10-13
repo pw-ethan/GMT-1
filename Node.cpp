@@ -21,7 +21,7 @@
 using namespace std;
 
 
-Node::Node(int16_t id, Node * parent, Node * leftChild, Node * rightChild){
+Node::Node(const int16_t & id, Node * parent, Node * leftChild, Node * rightChild){
     this->id = id;
     this->parent = parent;
     this->leftChild = leftChild;
@@ -29,14 +29,14 @@ Node::Node(int16_t id, Node * parent, Node * leftChild, Node * rightChild){
 }
 
 Node::~Node(){
-    
+    cout << "~Node()" << endl;
 }
 
 int16_t Node::getID(){
     return this->id;
 }
 
-void Node::setID(uint16_t id){
+void Node::setID(const uint16_t & id){
     this->id = id;
 }
 
