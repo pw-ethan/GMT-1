@@ -16,6 +16,6 @@ all : main.o Node.o #vTree.o common.o#auth_ds.o crypto_fhe_utility.o p_tree.o p_
 	$(CXX) -c -o $@ $< $(COMPILE_FLAGS)
 
 clean :
-	rm -rf *.o out
+	rm -rf *.o a.out
 
 .PHONY : all clean
