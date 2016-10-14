@@ -12,6 +12,6 @@
 #define HOST "localhost"
 #define USER "root"
 #define PWD "1234"
-#define DB_NAME "aht_data"
+#define DB_NAME "gmt_1_v"
 
 

@@ -1,17 +1,23 @@
 #include <iostream>
-#include <NTL/ZZ.h>
 #include <time.h>
 
-#include "crypto_fhe_utility.h"
-#include "v_tree.h"
-#include "p_tree.h"
-#include "auth_ds.h"
-#include "MyDB.h"
-#include "memory_dump.h"
-#include "vTree.h"
+#define DEBUG_DB
+
+#ifdef DEBUG_DB
+#include "DBUtility.h"
+#include "config.h"
+#endif
+
+
+#ifdef DEBUG_VTREE
+#include <NTL/ZZ.h>
+#include "VTree.h"
+#include "common.h"
+
+using namespace NTL;
+#endif
 
 using namespace std;
-using namespace NTL;
 
 int main()
 {
@@ -19,23 +25,36 @@ int main()
     startTime = clock();
 //===============================================
 
-
-    vTree * vt = new vTree();
-    vt->printvTree();
+#ifdef DEBUG_VTREE
+    VTree * vt = new VTree();
+    vt->printVTree();
 
     uint16_t ids1[] = {1};
     uint16_t ids2[] = {1, 2};
     uint16_t ids4[] = {1, 2, 3, 4};
 
-    vt->updatevTree(ids1, 1);
-    vt->printvTree();
-    vt->updatevTree(ids2, 2);
-    vt->printvTree();
-    vt->updatevTree(ids4, 4);
-    vt->printvTree();
+    vt->updateVTree(ids1, 1);
+    vt->printVTree();
+    vt->updateVTree(ids2, 2);
+    vt->printVTree();
+    vt->updateVTree(ids4, 4);
+    vt->printVTree();
+
+    cout << "Evidence: " << vt->getEvidence() << endl;
+
+    ZZ tmp = to_ZZ("234");
+    cout << tmp << endl;
+    cout << "size of ZZ: " << sizeof(tmp) << endl;
+    string stra = toBytes(&tmp, sizeof(tmp));
+    
+    string strb = stra;
+
+    ZZ tmpt = vt->Bytes2ZZ(strb);
+
+    cout << tmpt << endl;
 
     delete vt;
-    
+#endif
     /*
     // 初始化全同态加密算法，生成公私钥对
     crypto_fhe_utility *cy = new crypto_fhe_utility();
@@ -130,27 +149,25 @@ int main()
     delete cy;
 
 */
-/*
-    MyDB *db = new MyDB();
+#ifdef DEBUG_DB
+    DBUtility *db = new DBUtility();
     db->initDB(HOST, USER, PWD, DB_NAME);
 
    // db->exeSQL("insert into aht_weights values(1, '123')");
     db->startSQL();
     bool ret = true;
     for(int i = 0; i < 10; i++){
-        if(!(db->insertDB("aht_weights", i, "111"))){
+        if(!(db->updateDB("weights", i, "111"))){
             ret = false;
             break;
         }
     }
     db->endSQL(ret);
 
-    // db->exeSQL("select * from aht_weights");
-
     delete db;
-*/
+#endif
 
-
+//===============================================
     endTime = clock();
     cout << "\nThe running time of this program is " << (double)(endTime - startTime) / CLOCKS_PER_SEC << " secs." << endl;
     return 0;
