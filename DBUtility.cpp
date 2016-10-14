@@ -72,12 +72,19 @@ void DBUtility::startSQL(){
     cout << "[Info] DBUtility::startSQL() -- start transaction" << endl;
 }
 
+string DBUtility::queryDB(const string & tb_name, const int & index){
+    stringstream ss;
+    ss << "select weight from " << tb_name <<" where id=" << index << ";";
+    string strsql = ss.str();
+    return strsql;
+}
+
 bool DBUtility::insertDB(const string & tb_name, const int & index, const string & content){
     stringstream ss;
     ss << "insert into " << tb_name << " values(" << index <<", '" << content << "')";
     string strsql = ss.str();
     cout << strsql << endl;
-    int ret = mysql_query(connection, strsql.c_str());
+    int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
     if(ret){
         return false;
     }
@@ -86,10 +93,13 @@ bool DBUtility::insertDB(const string & tb_name, const int & index, const string
 
 bool DBUtility::updateDB(const string & tb_name, const int & index, const string & content){
     stringstream ss;
-    ss << "update " << tb_name << "set weight='" << content << "' where id=" << index <<";";
+    ss << "update " << tb_name << " set weight='" << content << "' where id=" << index;
     string strsql = ss.str();
     cout << strsql << endl;
-////here
+    int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
+    if(ret){
+        return false;
+    }
     return true;
 }
 

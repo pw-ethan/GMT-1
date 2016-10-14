@@ -15,6 +15,7 @@
  ******************************************************************/
 
 #include "common.h"
+#include "Base64.h"
 
 /**
  *  Calculate the nth power of 2
@@ -50,7 +51,7 @@ string toBytes(void* src, int len){
     for(int i = 0; i < len; i++){
         _return[i] = *(start + i);
     }
-    return _return;
+    return base64_encode(reinterpret_cast<const unsigned char*>(_return.c_str()), _return.length());
 }
 /*
 double getDouble(const string &x){

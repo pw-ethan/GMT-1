@@ -6,6 +6,7 @@
 #ifdef DEBUG_DB
 #include "DBUtility.h"
 #include "config.h"
+#include "common.h"
 #endif
 
 
@@ -155,16 +156,21 @@ int main()
 
    // db->exeSQL("insert into aht_weights values(1, '123')");
     db->startSQL();
-    bool ret = true;
+    bool ret = true;/*
     for(int i = 0; i < 10; i++){
-        if(!(db->updateDB("weights", i, "111"))){
+        cout << toBytes(&i, sizeof(i)) << endl;
+        if(!(db->insertDB("weights", i, toBytes(&i, sizeof(i))))){
             ret = false;
             break;
         }
-    }
+    }*/
     db->endSQL(ret);
 
     delete db;
+    ZZ tmp = to_ZZ("34532345241243123223421431");
+    string st = toBytes(&tmp, sizeof(tmp));
+    cout << st.length() << endl;
+    cout << tmp << endl;
 #endif
 
 //===============================================

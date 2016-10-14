@@ -31,6 +31,7 @@ class DBUtility
 
         
         void startSQL();
+        string queryDB(const string & tb_name, const int & index);
         bool insertDB(const string & tb_name, const int & index, const string & content);
         bool updateDB(const string & tb_name, const int & index, const string & content);
         void endSQL(const bool & ret);
