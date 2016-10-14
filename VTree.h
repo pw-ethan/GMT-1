@@ -56,5 +56,6 @@ private:
     Node * getPosition(Node * root);
     /* Pre-order traversal binary tree */
     //void PreOrderBiTree(Node * root);
+public:
     ZZ Bytes2ZZ(const string & x);
 };

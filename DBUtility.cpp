@@ -74,8 +74,20 @@ void DBUtility::startSQL(){
 
 string DBUtility::queryDB(const string & tb_name, const int & index){
     stringstream ss;
-    ss << "select weight from " << tb_name <<" where id=" << index << ";";
+    ss << "select weight from " << tb_name <<" where id=" << index;
     string strsql = ss.str();
+    if(mysql_real_query(connection, strsql.c_str(), strsql.length())){
+        cerr << "[Error] DBUtility::queryDB() -- mysql_real_query() is NOT OK!" << endl;
+        return NULL;
+    }
+    MYSQL_RES * result = mysql_store_result(connection);
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if(row <= 0){
+        return NULL;
+    }
+    ss.str("");
+    ss << row[0];
+    strsql = ss.str();
     return strsql;
 }
 

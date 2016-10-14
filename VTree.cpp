@@ -20,6 +20,7 @@
 
 #include "VTree.h"
 #include "common.h"
+#include "Base64.h"
 
 VTree::VTree(){
     this->depth = 0;
@@ -169,7 +170,8 @@ void VTree::PreOrderBiTree(Node * root){
 }*/
 
 ZZ VTree::Bytes2ZZ(const string & x){
-    char *p = const_cast<char *>(x.c_str());
+    string y = base64_decode(x);
+    char *p = const_cast<char *>(y.c_str());
     ZZ * _return = NULL;
     _return = reinterpret_cast<ZZ *>(p);
     return *_return;
