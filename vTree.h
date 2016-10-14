@@ -25,8 +25,12 @@ using namespace std;
 class vTree
 {
 public:
-    vTree(const uint16_t depth=4);
+    vTree();
     virtual ~vTree();
+
+    void updatevTree(const uint16_t * ids, const uint16_t numAdd2Weights);
+    /* Traversing the weights tree by level */
+    void printvTree();
 
     //ZZ getEvidence();
     //void setEvidence(const ZZ & value);
@@ -41,9 +45,13 @@ private:
     ZZ evidence;
     uint16_t depth;
     uint16_t numElems;
-    Node * root;
+    Node * root;            // the root of Verifier's weights tree
     uint16_t maxElems;
 
 private:
-//    void deleteTree(Node * root);
+    void deleteTree(Node * root);
+    /* Get the next insertable position in the weights tree of Verifier */
+    Node * getPosition(Node * root);
+    /* Pre-order traversal binary tree */
+    //void PreOrderBiTree(Node * root);
 };

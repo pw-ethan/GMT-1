@@ -8,7 +8,7 @@
 #include "auth_ds.h"
 #include "MyDB.h"
 #include "memory_dump.h"
-#include "Node.h"
+#include "vTree.h"
 
 using namespace std;
 using namespace NTL;
@@ -17,11 +17,24 @@ int main()
 {
     clock_t startTime, endTime;
     startTime = clock();
+//===============================================
 
-    Node *node = new Node(12);
-    cout << node->getID() << endl;
 
-    delete node;
+    vTree * vt = new vTree();
+    vt->printvTree();
+
+    uint16_t ids1[] = {1};
+    uint16_t ids2[] = {1, 2};
+    uint16_t ids4[] = {1, 2, 3, 4};
+
+    vt->updatevTree(ids1, 1);
+    vt->printvTree();
+    vt->updatevTree(ids2, 2);
+    vt->printvTree();
+    vt->updatevTree(ids4, 4);
+    vt->printvTree();
+
+    delete vt;
     
     /*
     // 初始化全同态加密算法，生成公私钥对
