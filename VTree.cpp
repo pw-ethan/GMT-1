@@ -17,6 +17,8 @@
 #include <iostream>
 #include <queue>
 #include <vector>
+#include <stdlib.h>
+#include <string.h>
 
 #include "VTree.h"
 #include "common.h"
@@ -171,8 +173,10 @@ void VTree::PreOrderBiTree(Node * root){
 
 ZZ VTree::Bytes2ZZ(const string & x){
     string y = base64_decode(x);
+    //cout << "[Debug] string length: " << x.length() << endl;
     char *p = const_cast<char *>(y.c_str());
-    ZZ * _return = NULL;
-    _return = reinterpret_cast<ZZ *>(p);
+    //cout << "[Debug] char * length:" << sizeof(ZZ) << endl;
+    ZZ * _return = reinterpret_cast<ZZ *>(p);
+    cout << "[Debug] return ZZ:" << *_return << endl;
     return *_return;
 }

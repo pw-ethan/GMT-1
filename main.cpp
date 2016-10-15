@@ -8,6 +8,7 @@
 #include "config.h"
 #include "common.h"
 #include "VTree.h"
+#include "Base64.h"
 #endif
 
 
@@ -152,33 +153,36 @@ int main()
 
 */
 #ifdef DEBUG_DB
+
     DBUtility *db = new DBUtility();
     db->initDB(HOST, USER, PWD, DB_NAME);
 
     db->startSQL();
     bool ret = true;
-    /*
-    ZZ tmp = to_ZZ("987654321");
+
+    ZZ tmp = to_ZZ("123456789");
     string stmp = toBytes(&tmp, sizeof(tmp));
-    for(int i = 5; i < 10; i++){
+    for(int i = 0; i < 5; i++){
         if(!(db->updateDB("weights", i, stmp))){
             ret = false;
             break;
         }
     }
-    */
-    string result = db->queryDB("weights", 1);
+
+    string result = db->queryDB("weights", 5);
     cout << result << endl;
     db->endSQL(ret);
 
     VTree * vt = new VTree();
     cout << "tag 1" << endl;
 /////here is a problem
-    ZZ tmp = vt->Bytes2ZZ(result);
+    //string result = "wNkhAQAAAAA=";
+
+    ZZ tmpa = vt->Bytes2ZZ(result);
     
     cout << "tag 2" << endl;
 
-    cout << tmp << endl;
+    cout << tmpa << endl;
 
     delete vt;
 

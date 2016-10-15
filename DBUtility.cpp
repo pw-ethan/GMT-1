@@ -68,6 +68,7 @@ bool DBUtility::exeSQL(string sql){
 
 void DBUtility::startSQL(){
     mysql_query(connection, "SET AUTOCOMMIT=0"); // MYSQL will autocommit by default.
+    mysql_query(connection, "SET NAMES 'utf8'");
     mysql_query(connection, "START TRANSACTION");
     cout << "[Info] DBUtility::startSQL() -- start transaction" << endl;
 }
@@ -76,6 +77,7 @@ string DBUtility::queryDB(const string & tb_name, const int & index){
     stringstream ss;
     ss << "select weight from " << tb_name <<" where id=" << index;
     string strsql = ss.str();
+    cout << strsql << endl;
     if(mysql_real_query(connection, strsql.c_str(), strsql.length())){
         cerr << "[Error] DBUtility::queryDB() -- mysql_real_query() is NOT OK!" << endl;
         return NULL;
