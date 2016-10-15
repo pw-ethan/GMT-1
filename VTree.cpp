@@ -24,6 +24,8 @@
 #include "common.h"
 #include "Base64.h"
 
+#include "memory_dump.h"
+
 VTree::VTree(){
     this->depth = 0;
     this->maxElems = 0;
@@ -70,6 +72,36 @@ void VTree::updateVTree(const uint16_t * ids, const uint16_t numAdd2Weights){
         tmp->setParent(position);
     }
 
+}
+
+bool VTree::addValue(const ZZ & value){
+    bool _return = true;
+    uint16_t offset = this->numElems;
+    uint16_t numOfCorner = this->depth - 1;
+
+    bool LeftOrRight[numOfCorner];
+    for(uint16_t i = 0; i < numOfCorner; i++){
+        if(offset % 2 == 1){
+            LeftOrRight[numOfCorner - i - 1] = true;
+        }else{
+            LeftOrRight[numOfCorner - i - 1] = false;
+        }
+        offset /= 2;
+    }
+
+    Node * point = this->root;
+    for(uint16_t i = 0; i < numOfCorner; i++){
+        if(LeftOrRight[i]){
+            point = point->getRightChild();
+        }else{
+            point = point->getLeftChild();
+        }
+        /////////here
+        cout << "[Debug] value of level_" << i << " node is " << point->getID() << endl;
+    }
+
+    this->numElems += 1;
+    return _return;
 }
 
 void VTree::printVTree(){
@@ -171,12 +203,15 @@ void VTree::PreOrderBiTree(Node * root){
     }
 }*/
 
+string VTree::ZZ2Bytes(const ZZ & x){
+    unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
+    BytesFromZZ(pstr, x, sizeof(ZZ));
+    string _return = base64_encode(pstr, sizeof(ZZ));
+    return _return;
+}
+
 ZZ VTree::Bytes2ZZ(const string & x){
     string y = base64_decode(x);
-    //cout << "[Debug] string length: " << x.length() << endl;
-    char *p = const_cast<char *>(y.c_str());
-    //cout << "[Debug] char * length:" << sizeof(ZZ) << endl;
-    ZZ * _return = reinterpret_cast<ZZ *>(p);
-    cout << "[Debug] return ZZ:" << *_return << endl;
-    return *_return;
+    ZZ _return = ZZFromBytes((const unsigned char *)(y.c_str()), sizeof(ZZ));
+    return _return;
 }

@@ -30,7 +30,10 @@ public:
     VTree();
     virtual ~VTree();
 
+    /* update Verifier's weights tree */
     void updateVTree(const uint16_t * ids, const uint16_t numAdd2Weights);
+    /* add value and update evidence */
+    bool addValue(const ZZ & value);
     /* Traversing the weights tree by level */
     void printVTree();
 
@@ -57,5 +60,6 @@ private:
     /* Pre-order traversal binary tree */
     //void PreOrderBiTree(Node * root);
 public:
+    string ZZ2Bytes(const ZZ & x);
     ZZ Bytes2ZZ(const string & x);
 };
