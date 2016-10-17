@@ -30,6 +30,7 @@ DBUtility::~DBUtility(){
         mysql_close(connection);
     }
     cout << "[Info] DBUtility::~DBUtility()" << endl;
+    cout << endl;
 }
 
 bool DBUtility::initDB(const string & host, const string & user, const string & pwd, const string & db_name){
@@ -124,4 +125,16 @@ void DBUtility::endSQL(const bool & ret){
         mysql_query(connection, "COMMIT");
     }
     cout << "[Info] DBUtility::endSQL() -- end transaction" << endl;
+    cout << endl;
+}
+
+void DBUtility::deleteDB(){
+    string strsql = "delete from weights";
+    cout << endl << strsql << endl;
+    startSQL();
+    int ret = mysql_query(connection, strsql.c_str());
+    if(ret){
+        endSQL(false);
+    }
+    endSQL(true);
 }

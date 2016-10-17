@@ -20,6 +20,7 @@
 #include <string>
 
 #include "Node.h"
+#include "DBUtility.h"
 
 using namespace NTL;
 using namespace std;
@@ -31,7 +32,7 @@ public:
     virtual ~VTree();
 
     /* update Verifier's weights tree */
-    void updateVTree(const uint16_t * ids, const uint16_t numAdd2Weights);
+    bool updateVTree(const ZZ * weights, const uint16_t &numAdd2Weights);
     /* add value and update evidence */
     bool addValue(const ZZ & value);
     /* Traversing the weights tree by level */
@@ -39,12 +40,12 @@ public:
 
     ZZ getEvidence();
     //void setEvidence(const ZZ & value);
-    //uint16_t getDepth();
+    uint16_t getDepth();
     //void setDepth(const uint16_t & depth);
-    //uint16_t getNumElems();
+    uint16_t getNumElems();
+    uint16_t getMaxElems();
     //void setNumElems(const uint16_t & numElems);
     //Node * getRoot();
-    //void insertWeight(const uint16_t & id, const ZZ & value);
 
 private:
     ZZ evidence;
@@ -52,6 +53,7 @@ private:
     uint16_t numElems;
     Node * root;            // the root of Verifier's weights tree
     uint16_t maxElems;
+    DBUtility *db;
 
 private:
     void deleteTree(Node * root);

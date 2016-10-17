@@ -17,12 +17,12 @@
 #include <iostream>
 #include <queue>
 #include <vector>
-#include <stdlib.h>
 #include <string.h>
 
 #include "VTree.h"
 #include "common.h"
 #include "Base64.h"
+#include "config.h"
 
 #include "memory_dump.h"
 
@@ -32,31 +32,60 @@ VTree::VTree(){
     clear(this->evidence);
     this->numElems = 0;
     this->root = new Node(0);
+    this->db = new DBUtility();
+    this->db->initDB(HOST, USER, PWD, DB_NAME);
 }
 
 VTree::~VTree(){
+    this->db->deleteDB();
+    delete this->db;
     deleteTree(this->root);
 }
 
-void VTree::updateVTree(const uint16_t * ids, const uint16_t numAdd2Weights){
-    if(numAdd2Weights != power_two(this->depth)){
-        cerr << "[Error] VTree::updateVTree() -- numAdd2Weights is NOT OK!"<< endl;
+bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
+    /*if(this->maxElems != this->numElems){
+        cerr << "[Error] VTree::updateVTree() -- number to add to Weights is NOT OK!"<< endl;
         return;
+    }*/
+
+    this->maxElems *= 2;
+    this->depth += 1;
+
+    this->db->startSQL();
+    bool _return = true;
+    uint16_t ids[numAdd2Weights];
+    for(uint16_t i = 0; i < numAdd2Weights; i++){
+        ids[i] = numAdd2Weights + i;
+        string stmp = this->ZZ2Bytes(weights[i]);
+        if(!(this->db->insertDB("weights", ids[i], stmp))){
+            _return = false;
+            break;
+        }
     }
-    maxElems *= 2;
-    depth += 1;
+    this->db->endSQL(_return);
+    if(_return == false){
+        this->maxElems /= 2;
+        this->depth -= 1;
+        return false;
+    }
+
+    // update evidence
+    this->evidence *= weights[0];
 
     // update root
     Node * node = new Node(ids[0]);
     node->setLeftChild(this->root);
     this->root->setParent(node);
     root = node;
-    
     if(numAdd2Weights == 1){
         cout << "[Info] VTree::updateVTree() -- numAdd2Weights is 1" << endl;
+        cout << endl;
+        this->maxElems = 1;
         root->setLeftChild(NULL);
-        return;
+        return true;
     }
+
+    // update right child tree
     node = new Node(ids[1]);
     root->setRightChild(node);
     node->setParent(root);
@@ -71,7 +100,7 @@ void VTree::updateVTree(const uint16_t * ids, const uint16_t numAdd2Weights){
         }
         tmp->setParent(position);
     }
-
+    return _return;
 }
 
 bool VTree::addValue(const ZZ & value){
@@ -89,18 +118,34 @@ bool VTree::addValue(const ZZ & value){
         offset /= 2;
     }
 
+    ZZ valueAdd2Evidence = value;
     Node * point = this->root;
+    this->db->startSQL();
     for(uint16_t i = 0; i < numOfCorner; i++){
         if(LeftOrRight[i]){
             point = point->getRightChild();
         }else{
             point = point->getLeftChild();
         }
-        /////////here
-        cout << "[Debug] value of level_" << i << " node is " << point->getID() << endl;
-    }
 
-    this->numElems += 1;
+        string result = this->db->queryDB("weights", point->getID());
+        if(result.empty()){
+            cerr << "[Info] VTree::addValue() -- Geting ZZ from DB is NOT OK" << endl;
+            _return = false;
+            break;
+        }
+        valueAdd2Evidence *= Bytes2ZZ(result);
+    }
+    string result = this->db->queryDB("weights", this->root->getID());
+    if(result.empty()){
+        cerr << "[Info] VTree::addValue() -- Geting ZZ from DB is NOT OK" << endl;
+        _return = false;
+    }
+    this->db->endSQL(_return);
+    if(_return){
+        this->evidence += valueAdd2Evidence;
+        this->numElems += 1;
+    }
     return _return;
 }
 
@@ -137,18 +182,22 @@ ZZ VTree::getEvidence(){
 void VTree::setEvidence(const ZZ & value){
     this->evidence = value;
 }*/
-/*
+
 uint16_t VTree::getDepth(){
     return this->depth;
-}*/
+}
 /*
 void VTree::setDepth(const uint16_t & depth){
     this->depth = depth;
 }*/
-/*
+
 uint16_t VTree::getNumElems(){
     return this->numElems;
-}*/
+}
+
+uint16_t VTree::getMaxElems(){
+    return this->maxElems;
+}
 /*
 void VTree::setNumElems(const uint16_t & numElems){
     this->numElems = numElems;
@@ -156,14 +205,6 @@ void VTree::setNumElems(const uint16_t & numElems){
 /*
 Node * VTree::getRoot(){
     return this->root;
-}*/
-/*
-void VTree::insertWeight(const uint16_t & id, const ZZ & value){
-    if(this->numElems < this->maxElems){
-        cout << "insert #" << this->numElems << ": {"<< id << ", "<< value << "}" << endl;
-
-        this->numElems += 1;
-    }
 }*/
 
 void VTree::deleteTree(Node *root){
@@ -215,3 +256,4 @@ ZZ VTree::Bytes2ZZ(const string & x){
     ZZ _return = ZZFromBytes((const unsigned char *)(y.c_str()), sizeof(ZZ));
     return _return;
 }
+

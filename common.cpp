@@ -37,10 +37,15 @@ ZZ *gen_weights(const int num)
         result[i] = rand() % WEIGHT_BOUNDARY + 1;
     }
 */
+    /*
     ZZ *result = new ZZ[num];
     SetSeed(to_ZZ(time(NULL)));
     for(int i = 0; i < num; i++){
         RandomLen(result[i], 16);
+    }*/
+    ZZ * result = new ZZ[num];
+    for(int i = 0; i < num; i++){
+        result[i] = to_ZZ(i+1);
     }
     return result;
 }

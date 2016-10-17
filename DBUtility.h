@@ -38,4 +38,6 @@ class DBUtility
         // bool exeSQL(string sql);
     private:
         MYSQL *connection;
+    public:
+        void deleteDB();
 };

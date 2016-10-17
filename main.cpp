@@ -32,25 +32,28 @@ int main()
 #ifdef DEBUG_VTREE
     VTree * vt = new VTree();
     vt->printVTree();
-
-    uint16_t ids1[] = {1};
-    uint16_t ids2[] = {1, 2};
-    uint16_t ids4[] = {1, 2, 3, 4};
-
-    vt->updateVTree(ids1, 1);
-    vt->printVTree();
-    vt->updateVTree(ids2, 2);
-    vt->printVTree();
-    vt->updateVTree(ids4, 4);
-    vt->printVTree();
-
+/*
+    for(uint16_t i = 0; i < 3; i++){
+        uint16_t numAdd2Weights = power_two(i);
+        ZZ * weights = gen_weights(numAdd2Weights);
+        vt->updateVTree(weights, numAdd2Weights);
+        vt->printVTree();
+    }
+*/
     cout << "Evidence: " << vt->getEvidence() << endl;
 
-    ZZ tmp = to_ZZ("234");
+    ZZ tmp = to_ZZ("2");
 
     for(int i = 0; i < 4; i++){
+        if(vt->getNumElems() == vt->getMaxElems()){
+            uint16_t numAdd2Weights = power_two(vt->getDepth());
+            ZZ * weights = gen_weights(numAdd2Weights);
+            vt->updateVTree(weights, numAdd2Weights);
+            vt->printVTree();
+        }
         cout << endl << "add " << i << "th value" << endl;
         vt->addValue(tmp);
+        cout << "Evidence: " << vt->getEvidence() << endl;
     }
 
     delete vt;
