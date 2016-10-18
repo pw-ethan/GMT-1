@@ -1,7 +1,12 @@
 #include <iostream>
 #include <time.h>
 
-#define DEBUG_PTREE
+#define DEBUG_CRYPTO
+
+#ifdef DEBUG_CRYPTO
+#include "CryptoUtility.h"
+#include "memory_dump.h"
+#endif
 
 #ifdef DEBUG_PTREE
 #include "PTree.h"
@@ -33,6 +38,26 @@ int main()
     clock_t startTime, endTime;
     startTime = clock();
 //===============================================
+
+#ifdef DEBUG_CRYPTO
+    
+    CryptoUtility * cy = new CryptoUtility();
+    //FHEPubKey * pubkey = cy->getPublicKey();
+
+    cy->FHEPubKey2File();
+
+    FHEPubKey *pubkey = cy->File2FHEPubKey();
+    
+    if(*(pubkey) == *(cy->getPublicKey())){
+        cout << "[Debug] equals" << endl;
+    }
+
+    memory_dump(pubkey, 10);
+    memory_dump(cy->getPublicKey(), 10);
+    delete cy;
+
+#endif
+
 
 #ifdef DEBUG_PTREE
 
