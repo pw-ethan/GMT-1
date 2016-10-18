@@ -1,7 +1,12 @@
 #include <iostream>
 #include <time.h>
 
-#define DEBUG_VTREE
+#define DEBUG_PTREE
+
+#ifdef DEBUG_PTREE
+#include "PTree.h"
+#include "common.h"
+#endif
 
 #ifdef DEBUG_DB
 #include "DBUtility.h"
@@ -28,6 +33,26 @@ int main()
     clock_t startTime, endTime;
     startTime = clock();
 //===============================================
+
+#ifdef DEBUG_PTREE
+
+    PTree * pt = new PTree();
+
+    pt->printPTree();
+
+    for(uint16_t i = 0; i < 3; i++){
+        uint16_t numAdd2Weights = power_two(i);
+        uint16_t ids[numAdd2Weights];
+        for(uint16_t j = 0; j < numAdd2Weights; j++){
+            ids[j] = j + 1;
+        }
+        pt->updatePTree(ids, numAdd2Weights);
+        pt->printPTree();
+    }
+
+    delete pt;
+
+#endif
 
 #ifdef DEBUG_VTREE
     VTree * vt = new VTree();

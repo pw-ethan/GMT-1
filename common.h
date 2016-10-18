@@ -31,9 +31,9 @@ uint16_t power_two(uint16_t n);
 
 ZZ *gen_weights(const int num);
 
-string toBytes(void* src, int len);
+//string toBytes(void* src, int len);
 
 //double getDouble(const string &x);
 
-Ctxt* getCtxt(const string &x);
+//Ctxt* getCtxt(const string &x);
 

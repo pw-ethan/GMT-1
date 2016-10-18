@@ -15,7 +15,7 @@
  ******************************************************************/
 
 #include "common.h"
-#include "Base64.h"
+//#include "Base64.h"
 
 /**
  *  Calculate the nth power of 2
@@ -49,7 +49,7 @@ ZZ *gen_weights(const int num)
     }
     return result;
 }
-
+/*
 string toBytes(void* src, int len){
     string _return(len, 0);
     char *start = reinterpret_cast<char *>(src);
@@ -57,7 +57,7 @@ string toBytes(void* src, int len){
         _return[i] = *(start + i);
     }
     return base64_encode((unsigned char *)(_return.c_str()), _return.length());
-}
+}*/
 /*
 double getDouble(const string &x){
     char *p = const_cast<char *>(x.c_str());
@@ -65,10 +65,10 @@ double getDouble(const string &x){
     _return = reinterpret_cast<double *>(p);
     return *_return;
 }*/
-
+/*
 Ctxt* getCtxt(const string &x){
     char *p = const_cast<char *>(x.c_str());
     Ctxt *_return = NULL;
     _return = reinterpret_cast<Ctxt *>(p);
     return _return;
-}
+}*/
