@@ -79,7 +79,6 @@ bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
     this->root = node;
     if(numAdd2Weights == 1){
         cout << "[Info] VTree::updateVTree() -- numAdd2Weights is 1" << endl;
-        cout << endl;
         this->maxElems = 1;
         this->root->setLeftChild(NULL);
         return true;
