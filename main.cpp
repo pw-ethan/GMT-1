@@ -40,21 +40,53 @@ int main()
 //===============================================
 
 #ifdef DEBUG_CRYPTO
-    
+/*    
     CryptoUtility * cy = new CryptoUtility();
-    //FHEPubKey * pubkey = cy->getPublicKey();
+    cy->initFHE();
+*/
+    CryptoUtility * cyv = new CryptoUtility();
+    cyv->initFHEByVerifier();
+/*
+    CryptoUtility * cyp = new CryptoUtility();
+    cyp->initFHEByProver();
 
-    cy->FHEPubKey2File();
-
-    FHEPubKey *pubkey = cy->File2FHEPubKey();
-    
-    if(*(pubkey) == *(cy->getPublicKey())){
-        cout << "[Debug] equals" << endl;
+    if(*(cyv->getContext()) == *(cyp->getContext())){
+        cout << "[Info] context equals" << endl;
     }
 
-    memory_dump(pubkey, 10);
-    memory_dump(cy->getPublicKey(), 10);
-    delete cy;
+    if(*(cyv->getPubKey()) == *(cyp->getPubKey())){
+        cout << "[Info] pubkey equals" << endl;
+    }
+*/
+/*
+    if(*(cy->getSecKey()) == *(cyv->getSecKey())){
+        cout << "[Info] seckey equals" << endl;
+    }
+
+    cout << "cy seckey:";
+    memory_dump(cy->getSecKey(), sizeof(FHESecKey));
+*/
+    cout << "cyv seckey";
+    memory_dump(cyv->getSecKey(), sizeof(FHESecKey));
+
+    cout << "cyv pubkey:";
+    memory_dump(cyv->getPubKey(), sizeof(FHEPubKey));
+
+//    cout << "cyp pubkey:";
+//    memory_dump(cyp->getPubKey(), sizeof(FHEPubKey));
+/*    
+    cout << "cy context:";
+    memory_dump(cy->getContext(), sizeof(FHEcontext));
+*/
+    cout << "cyv context:";
+    memory_dump(cyv->getContext(), sizeof(FHEcontext));
+
+//    cout << "cyp context:";
+//    memory_dump(cyp->getContext(), sizeof(FHEcontext));
+
+//    delete cyp;
+    delete cyv;
+//    delete cy;
 
 #endif
 

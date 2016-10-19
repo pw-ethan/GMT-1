@@ -16,23 +16,46 @@
 
 #pragma once
 
+#include <string>
+
 #include "./libs/fhe/FHE.h"
 #include "config.h"
 
 class CryptoUtility {
-private:
-    FHEcontext *context;
-    FHESecKey *secretKey;
-    FHEPubKey *publicKey;
 
 public:
     CryptoUtility();
     virtual ~CryptoUtility();
 
-    void init_fhe();
-    FHESecKey *getSecretKey();
-    FHEPubKey *getPublicKey();
+    void initFHE();
+    void initFHEByVerifier();
+    void initFHEByProver();
 
-    void FHEPubKey2File();
-    FHEPubKey * File2FHEPubKey();
+    FHEcontext * getContext();
+    FHESecKey *getSecKey();
+    FHEPubKey *getPubKey();
+
+    //void FHEPubKey2File();
+    //FHEPubKey * File2FHEPubKey();
+
+    //void FHEContext2File();
+    //FHEcontext * File2FHEContext();
+
+private:
+    FHEcontext *context;
+    FHESecKey *seckey;
+    FHEPubKey *pubkey;
+    long m;
+    long p;
+    long r;
+
+private:
+    void write2File(const char * path, const string & content);
+    string readFromFile(const char * path);
+    string FHE2Bytes(void * src, unsigned int len);
+    void Bytes2FHEContext(const string & x);
+    void Bytes2FHEPubKey(const string & x);
+    void Bytes2FHESecKey(const string & x);
+    void writeMPR();
+    void readMPR();
 };
