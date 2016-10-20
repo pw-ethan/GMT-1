@@ -1,5 +1,8 @@
 #include <iostream>
 #include <time.h>
+#include <NTL/ZZ.h>
+
+#include "common.h"
 
 #define DEBUG_CRYPTO
 
@@ -10,13 +13,11 @@
 
 #ifdef DEBUG_PTREE
 #include "PTree.h"
-#include "common.h"
 #endif
 
 #ifdef DEBUG_DB
 #include "DBUtility.h"
 #include "config.h"
-#include "common.h"
 #include "VTree.h"
 #include "Base64.h"
 #include "memory_dump.h"
@@ -24,14 +25,11 @@
 
 
 #ifdef DEBUG_VTREE
-#include <NTL/ZZ.h>
 #include "VTree.h"
-#include "common.h"
-
-using namespace NTL;
 #endif
 
 using namespace std;
+using namespace NTL;
 
 int main()
 {
@@ -45,7 +43,18 @@ int main()
     cy->initFHE();
 */
     CryptoUtility * cyv = new CryptoUtility();
-    cyv->initFHEByVerifier();
+    //cyv->initFHEByVerifier();
+    cyv->initFHE();
+
+    ZZ a = to_ZZ("123");
+    cout << "a: " << a << endl;
+
+    Ctxt * pct = cyv->encrypt(a);
+    cout << "ct: " << *pct << endl;
+
+    ZZ * b = cyv->decrypt(*pct);
+    cout << "pt: " << *b << endl;
+    cout << *b << endl;
 /*
     CryptoUtility * cyp = new CryptoUtility();
     cyp->initFHEByProver();
@@ -66,11 +75,11 @@ int main()
     cout << "cy seckey:";
     memory_dump(cy->getSecKey(), sizeof(FHESecKey));
 */
-    cout << "cyv seckey";
-    memory_dump(cyv->getSecKey(), sizeof(FHESecKey));
+//    cout << "cyv seckey";
+//    memory_dump(cyv->getSecKey(), sizeof(FHESecKey));
 
-    cout << "cyv pubkey:";
-    memory_dump(cyv->getPubKey(), sizeof(FHEPubKey));
+//    cout << "cyv pubkey:";
+//    memory_dump(cyv->getPubKey(), sizeof(FHEPubKey));
 
 //    cout << "cyp pubkey:";
 //    memory_dump(cyp->getPubKey(), sizeof(FHEPubKey));
@@ -78,8 +87,8 @@ int main()
     cout << "cy context:";
     memory_dump(cy->getContext(), sizeof(FHEcontext));
 */
-    cout << "cyv context:";
-    memory_dump(cyv->getContext(), sizeof(FHEcontext));
+//    cout << "cyv context:";
+//    memory_dump(cyv->getContext(), sizeof(FHEcontext));
 
 //    cout << "cyp context:";
 //    memory_dump(cyp->getContext(), sizeof(FHEcontext));

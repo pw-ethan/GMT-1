@@ -30,6 +30,8 @@ public:
     void initFHE();
     void initFHEByVerifier();
     void initFHEByProver();
+    Ctxt * encrypt(const ZZ & plaintext);
+    ZZ * decrypt(const Ctxt & ciphertext);
 
     FHEcontext * getContext();
     FHESecKey *getSecKey();
