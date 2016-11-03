@@ -16,10 +16,7 @@
 
 #pragma once
 
-#include <string>
-
 #include "./libs/fhe/FHE.h"
-#include "config.h"
 
 class CryptoUtility {
 
@@ -30,27 +27,20 @@ public:
     void initFHE();
     void initFHEByVerifier();
     void initFHEByProver();
+    /*
     Ctxt * encrypt(const ZZ & plaintext);
     ZZ * decrypt(const Ctxt & ciphertext);
 
     FHEcontext * getContext();
     FHESecKey *getSecKey();
     FHEPubKey *getPubKey();
-
+*/
     //void FHEPubKey2File();
     //FHEPubKey * File2FHEPubKey();
 
     //void FHEContext2File();
     //FHEcontext * File2FHEContext();
-
-private:
-    FHEcontext *context = NULL;
-    FHESecKey *seckey = NULL;
-    FHEPubKey *pubkey = NULL;
-    long m;
-    long p;
-    long r;
-
+/*
 private:
     void write2File(const char * path, const string & content);
     string readFromFile(const char * path);
@@ -64,4 +54,9 @@ private:
 public:
     void writeFHE2File();
     void readFHEFromFile();
+*/
+private:
+    FHEcontext *context;
+    FHEPubKey *pubkey;
+    FHESecKey *seckey;
 };

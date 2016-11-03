@@ -14,47 +14,31 @@
  *  说明: 
  ******************************************************************/
 
-#include <fstream>
-#include <vector>
-#include <cstring>
-#include <stdio.h>
-#include <unistd.h>
-
 #include "CryptoUtility.h"
-#include "Base64.h"
-#include "memory_dump.h"
 
-#define BASEFILE "base.key"
+#include <fstream>
+
+#include "config.h"
+
 #define CONTEXTFILE "context.key"
 #define PUBKEYFILE "pubkey.key"
 #define SECKEYFILE "seckey.key"
 
-using namespace std;
-
 
 CryptoUtility::CryptoUtility() {
+    cout << "[Info] CryptoUtility::CryptoUtility() ..." << endl;
 }
 
 CryptoUtility::~CryptoUtility() {
     cout << "[Info] CryptoUtility::~CryptoUtility() ..." << endl;
-    /*if(this->context != NULL){
-        delete this->context;
-    }
-    if(this->pubkey != NULL){
-        delete this->pubkey;
-    }
-    if(this->seckey != NULL){
-        delete this->seckey;
-    }*/
-    cout << "[Info] CryptoUtility::~CryptoUtility() OK" << std::endl;
 }
 
 void CryptoUtility::initFHE() {
     cout << "[Info] Initializing ..." << endl;
     /* initializes parameters */
-    m = 0;         // m, p, r, the native plaintext space
-    p = 1013;      // p is a prime, 模p计算
-    r = 1;
+    long m = 0;         // m, p, r, the native plaintext space
+    long p = 1013;      // p is a prime, 模p计算
+    long r = 1;
     long L = TREE_LEVELS * 2;         // the number “levels,” i.e. the number of ciphertext primes
     long c = 2;         // number of columns in key switching matrix (recommended c = 2 or c = 3)
     long w = 64;        // the Hamming weight of a secret key (w = 64 recommended)
@@ -65,18 +49,38 @@ void CryptoUtility::initFHE() {
     m = FindM(k, L, c, p, d, s, 0);
 
     /* initializes context */
-    this->context = new FHEcontext(m, p, r);
-    buildModChain(*(this->context), L, c);
+    context = new FHEcontext(m, p, r);
+    buildModChain(*context, L, c);
 
     /* generates keys*/
-    this->seckey = new FHESecKey(*(this->context));
-    this->pubkey = this->seckey;
+    seckey = new FHESecKey(*context);
+    seckey->GenSecKey(w);
 
-    this->seckey->GenSecKey(w);
+    pubkey = *seckey;
+
+    // write FHEcontext/FHEPubKey/FHESecKey to file
+    ofstream osc(CONTEXTFILE, ios::binary);
+    if(osc.is_open()){
+        writeContextBase(osc, context);
+        osc << context;
+        osc.close();
+    }
+
+    ofstream osp(PUBKEYFILE, ios::binary);
+    if(osp.is_open()){
+        osp << pubkey;
+        osp.close();
+    }
+
+    ofstream oss(SECKEYFILE, ios::binary);
+    if(oss.is_open()){
+        oss << seckey;
+        oss.close();
+    }
 
     cout << "[Info] Initializing OK" << endl;
 }
-
+/*
 void CryptoUtility::initFHEByVerifier(){
     cout << "[Info] Initializing by Verifier ..." << endl;
     if(access(SECKEYFILE, F_OK) == -1){
@@ -84,7 +88,7 @@ void CryptoUtility::initFHEByVerifier(){
         return;
     }
 
-    if(/*access(BASEFILE, F_OK) == -1 || */access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
+    if(access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
         cerr << "[Error] context.key or pubkey.key does not exist!" << endl;
         return;
     }
@@ -107,7 +111,7 @@ void CryptoUtility::initFHEByVerifier(){
 
 void CryptoUtility::initFHEByProver(){
     cout << "[Info] Initializing by Prover ..." << endl;
-    if(/*access(BASEFILE, F_OK) == -1 || */access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
+    if(access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
         cerr << "[Error] context.key or pubkey.key does not exist!" << endl;
         return;
     }
@@ -162,21 +166,29 @@ FHEcontext * CryptoUtility::getContext(){
 
 string CryptoUtility::FHE2Bytes(void * src, unsigned int len){
     unsigned char pstr[len];
-    memcpy(pstr, src, len);
+    char * start = reinterpret_cast<char *>(src);
+    for(unsigned int i = 0; i < len; i++){
+        pstr[i] = *(start + i);
+    }
+    //memcpy(pstr, src, len);
     string _return = base64_encode(pstr, len);
     return _return;
 }
 
 void CryptoUtility::Bytes2FHEContext(const string & x){
     string y = base64_decode(x);
-    this->context = new FHEcontext(this->m, this->p, this->r);
-    memcpy(this->context, y.c_str(), sizeof(FHEcontext));
+    char * p = const_cast<char *>(y.c_str());
+    this->context = (FHEcontext *)calloc(1, sizeof(FHEcontext));
+    //this->context = new FHEcontext(this->m, this->p, this->r);
+    memcpy(this->context, p, sizeof(FHEcontext));
 }
 
 void CryptoUtility::Bytes2FHEPubKey(const string & x){
     string y = base64_decode(x);
-    this->pubkey = new FHESecKey(*(this->context));
-    memcpy(this->pubkey, y.c_str(), sizeof(FHEPubKey));
+    char * p = const_cast<char *>(y.c_str());
+    this->pubkey = (FHEPubKey *)calloc(1, sizeof(FHEPubKey));
+    //this->pubkey = new FHESecKey(*(this->context));
+    memcpy(this->pubkey, p, sizeof(FHEPubKey));
 }
 
 void CryptoUtility::Bytes2FHESecKey(const string & x){
@@ -216,4 +228,4 @@ void CryptoUtility::readMPR(){
     in >> this->p;
     in >> this->r;
     in.close();
-}
+}*/

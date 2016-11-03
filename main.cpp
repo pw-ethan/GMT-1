@@ -38,17 +38,17 @@ int main()
 
 #ifdef DEBUG_CRYPTO
 
-    //CryptoUtility * cy = new CryptoUtility();
-    //cy->initFHE();
+    CryptoUtility * cy = new CryptoUtility();
+    cy->initFHE();
     //cy->writeFHE2File();
 
     //CryptoUtility * cyv = new CryptoUtility();
     //cyv->initFHEByVerifier();
     //cyv->initFHE();
 
-    CryptoUtility * cyp = new CryptoUtility();
-    cyp->initFHEByProver();
-
+    //CryptoUtility * cyp = new CryptoUtility();
+    //cyp->initFHEByProver();
+/*
     ZZ a = to_ZZ("123");
     cout << "a: " << a << endl;
 
@@ -58,7 +58,7 @@ int main()
     ZZ * b = cyp->decrypt(*pct);
     cout << "pt: " << *b << endl;
     cout << *b << endl;
-
+*/
 
 /*
     if(*(cyv->getContext()) == *(cyp->getContext())){
@@ -75,13 +75,13 @@ int main()
 
     cout << "cyv context:";
     memory_dump(cyv->getContext(), 32);
-*/
+
     cout << "cyp context:";
     memory_dump(cyp->getContext(), 32);
-
-    delete cyp;
+*/
+    //delete cyp;
     //delete cyv;
-    //delete cy;
+    delete cy;
 
 #endif
 
