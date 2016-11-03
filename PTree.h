@@ -15,10 +15,12 @@
  ******************************************************************/
 #pragma once
 
+#include <string>
 #include <stdint.h>
+#include "./libs/fhe/FHE.h"
 
 #include "Node.h"
-
+#include "CryptoUtility.h"
 
 class PTree
 {
@@ -42,5 +44,8 @@ private:
     Node * getPosition(Node * root);
     void deleteTree(Node * root);
     void printTree(Node * root);
+public:
+    string Ctxt2Bytes(Ctxt * src);
+    Ctxt * Bytes2Ctxt(const string & x);
 };
 

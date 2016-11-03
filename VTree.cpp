@@ -26,6 +26,11 @@
 
 #include "memory_dump.h"
 
+#define VHOST "localhost"
+#define VUSER "root"
+#define VPWD "1234"
+#define VDB_NAME "gmt_1_v"
+
 VTree::VTree(){
     this->depth = 0;
     this->maxElems = 0;
@@ -33,7 +38,7 @@ VTree::VTree(){
     this->numElems = 0;
     this->root = new Node(0);
     this->db = new DBUtility();
-    this->db->initDB(HOST, USER, PWD, DB_NAME);
+    this->db->initDB(VHOST, VUSER, VPWD, VDB_NAME);
 }
 
 VTree::~VTree(){
@@ -43,10 +48,11 @@ VTree::~VTree(){
 }
 
 bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
-    /*if(this->maxElems != this->numElems){
-        cerr << "[Error] VTree::updateVTree() -- number to add to Weights is NOT OK!"<< endl;
-        return;
-    }*/
+    cout << endl << "[Info] update VTree" << endl;
+
+    if(numAdd2Weights != power_two(this->depth)){
+        cerr << "[Error] VTree::updateVTree() -- number of adding to Weights is NOT OK!" << endl;
+    }
 
     this->maxElems *= 2;
     this->depth += 1;
@@ -140,6 +146,7 @@ bool VTree::addValue(const ZZ & value){
         cerr << "[Info] VTree::addValue() -- Geting ZZ from DB is NOT OK" << endl;
         _return = false;
     }
+    valueAdd2Evidence *= Bytes2ZZ(result);
     this->db->endSQL(_return);
     if(_return){
         this->evidence += valueAdd2Evidence;

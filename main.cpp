@@ -3,12 +3,12 @@
 #include <NTL/ZZ.h>
 
 #include "common.h"
+#include "memory_dump.h"
 
 #define DEBUG_CRYPTO
 
 #ifdef DEBUG_CRYPTO
 #include "CryptoUtility.h"
-#include "memory_dump.h"
 #endif
 
 #ifdef DEBUG_PTREE
@@ -20,7 +20,6 @@
 #include "config.h"
 #include "VTree.h"
 #include "Base64.h"
-#include "memory_dump.h"
 #endif
 
 
@@ -38,74 +37,89 @@ int main()
 //===============================================
 
 #ifdef DEBUG_CRYPTO
-/*    
-    CryptoUtility * cy = new CryptoUtility();
-    cy->initFHE();
-*/
-    CryptoUtility * cyv = new CryptoUtility();
+
+    //CryptoUtility * cy = new CryptoUtility();
+    //cy->initFHE();
+    //cy->writeFHE2File();
+
+    //CryptoUtility * cyv = new CryptoUtility();
     //cyv->initFHEByVerifier();
-    cyv->initFHE();
+    //cyv->initFHE();
+
+    CryptoUtility * cyp = new CryptoUtility();
+    cyp->initFHEByProver();
 
     ZZ a = to_ZZ("123");
     cout << "a: " << a << endl;
 
-    Ctxt * pct = cyv->encrypt(a);
+    Ctxt * pct = cyp->encrypt(a);
     cout << "ct: " << *pct << endl;
 
-    ZZ * b = cyv->decrypt(*pct);
+    ZZ * b = cyp->decrypt(*pct);
     cout << "pt: " << *b << endl;
     cout << *b << endl;
-/*
-    CryptoUtility * cyp = new CryptoUtility();
-    cyp->initFHEByProver();
 
+
+/*
     if(*(cyv->getContext()) == *(cyp->getContext())){
-        cout << "[Info] context equals" << endl;
+        cout << "[Info] v&p context equals" << endl;
     }
 
-    if(*(cyv->getPubKey()) == *(cyp->getPubKey())){
-        cout << "[Info] pubkey equals" << endl;
-    }
-*/
-/*
     if(*(cy->getSecKey()) == *(cyv->getSecKey())){
         cout << "[Info] seckey equals" << endl;
     }
-
-    cout << "cy seckey:";
-    memory_dump(cy->getSecKey(), sizeof(FHESecKey));
 */
-//    cout << "cyv seckey";
-//    memory_dump(cyv->getSecKey(), sizeof(FHESecKey));
-
-//    cout << "cyv pubkey:";
-//    memory_dump(cyv->getPubKey(), sizeof(FHEPubKey));
-
-//    cout << "cyp pubkey:";
-//    memory_dump(cyp->getPubKey(), sizeof(FHEPubKey));
-/*    
+/*
     cout << "cy context:";
-    memory_dump(cy->getContext(), sizeof(FHEcontext));
+    memory_dump(cy->getContext(), 32);
+
+    cout << "cyv context:";
+    memory_dump(cyv->getContext(), 32);
 */
-//    cout << "cyv context:";
-//    memory_dump(cyv->getContext(), sizeof(FHEcontext));
+    cout << "cyp context:";
+    memory_dump(cyp->getContext(), 32);
 
-//    cout << "cyp context:";
-//    memory_dump(cyp->getContext(), sizeof(FHEcontext));
-
-//    delete cyp;
-    delete cyv;
-//    delete cy;
+    delete cyp;
+    //delete cyv;
+    //delete cy;
 
 #endif
 
 
 #ifdef DEBUG_PTREE
 
-    PTree * pt = new PTree();
+    CryptoUtility *cy = new CryptoUtility();
+    cy->initFHE();
 
+    PTree * pt = new PTree();
     pt->printPTree();
 
+    ZZ v2 = to_ZZ("2");
+    ZZ v3 = to_ZZ("3");
+
+    Ctxt * ct2 = new Ctxt(*(cy->getPubKey()));
+    Ctxt * ct3 = new Ctxt(*(cy->getPubKey()));
+
+    cy->getPubKey()->Encrypt(*ct2, to_ZZX(v2));
+    cy->getPubKey()->Encrypt(*ct3, to_ZZX(v3));
+
+    string str2 = pt->Ctxt2Bytes(ct2);
+    
+    Ctxt *ctt2= new Ctxt(*(cy->getPubKey()));
+    ctt2 = pt->Bytes2Ctxt(str2);
+
+    memory_dump(ct2, sizeof(Ctxt));
+    memory_dump(ctt2, sizeof(Ctxt));
+
+    Ctxt ctSum(*ctt2);
+    ctSum += *ct3;
+
+    ZZX vSum;
+    cy->getSecKey()->Decrypt(vSum, ctSum);
+
+    cout << "2 + 3 = " << vSum[0] << endl;
+
+/*
     for(uint16_t i = 0; i < 3; i++){
         uint16_t numAdd2Weights = power_two(i);
         uint16_t ids[numAdd2Weights];
@@ -115,8 +129,12 @@ int main()
         pt->updatePTree(ids, numAdd2Weights);
         pt->printPTree();
     }
-
+*/
+    //delete ctt2;
+    delete ct3;
+    delete ct2;
     delete pt;
+    delete cy;
 
 #endif
 

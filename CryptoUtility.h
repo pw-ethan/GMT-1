@@ -44,9 +44,9 @@ public:
     //FHEcontext * File2FHEContext();
 
 private:
-    FHEcontext *context;
-    FHESecKey *seckey;
-    FHEPubKey *pubkey;
+    FHEcontext *context = NULL;
+    FHESecKey *seckey = NULL;
+    FHEPubKey *pubkey = NULL;
     long m;
     long p;
     long r;
@@ -60,4 +60,8 @@ private:
     void Bytes2FHESecKey(const string & x);
     void writeMPR();
     void readMPR();
+
+public:
+    void writeFHE2File();
+    void readFHEFromFile();
 };

@@ -36,7 +36,7 @@ CryptoUtility::CryptoUtility() {
 }
 
 CryptoUtility::~CryptoUtility() {
-    cout << "[Info] CryptoUtility::~CryptoUtility()" << endl;
+    cout << "[Info] CryptoUtility::~CryptoUtility() ..." << endl;
     /*if(this->context != NULL){
         delete this->context;
     }
@@ -46,7 +46,7 @@ CryptoUtility::~CryptoUtility() {
     if(this->seckey != NULL){
         delete this->seckey;
     }*/
-    //cout << "[Info] CryptoUtility::~CryptoUtility() OK" << std::endl;
+    cout << "[Info] CryptoUtility::~CryptoUtility() OK" << std::endl;
 }
 
 void CryptoUtility::initFHE() {
@@ -74,17 +74,6 @@ void CryptoUtility::initFHE() {
 
     this->seckey->GenSecKey(w);
 
-    writeMPR();
-
-    string strContext = FHE2Bytes(this->context, sizeof(FHEcontext));
-    write2File(CONTEXTFILE, strContext);
-
-    string strPubKey = FHE2Bytes(this->pubkey, sizeof(FHEPubKey));
-    write2File(PUBKEYFILE, strPubKey);
-
-    string strSecKey = FHE2Bytes(this->seckey, sizeof(FHESecKey));
-    write2File(SECKEYFILE, strSecKey);
-
     cout << "[Info] Initializing OK" << endl;
 }
 
@@ -95,19 +84,21 @@ void CryptoUtility::initFHEByVerifier(){
         return;
     }
 
-    if(access(BASEFILE, F_OK) == -1 || access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
-        cerr << "[Error] base.key or context.key or pubkey.key does not exist!" << endl;
+    if(/*access(BASEFILE, F_OK) == -1 || */access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
+        cerr << "[Error] context.key or pubkey.key does not exist!" << endl;
         return;
     }
     
     readMPR();
-
+    this->context = new FHEcontext(m, p, r);
     string strContext = readFromFile(CONTEXTFILE);
     Bytes2FHEContext(strContext);
-    
+
+    this->pubkey = new FHESecKey(*(this->context));
     string strPubKey = readFromFile(PUBKEYFILE);
     Bytes2FHEPubKey(strPubKey);
 
+    this->seckey = new FHESecKey(*(this->context));
     string strSecKey = readFromFile(SECKEYFILE);
     Bytes2FHESecKey(strSecKey);
 
@@ -116,16 +107,17 @@ void CryptoUtility::initFHEByVerifier(){
 
 void CryptoUtility::initFHEByProver(){
     cout << "[Info] Initializing by Prover ..." << endl;
-    if(access(BASEFILE, F_OK) == -1 || access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
-        cerr << "[Error] base.key or context.key or pubkey.key does not exist!" << endl;
+    if(/*access(BASEFILE, F_OK) == -1 || */access(CONTEXTFILE, F_OK) == -1 || access(PUBKEYFILE, F_OK) == -1){
+        cerr << "[Error] context.key or pubkey.key does not exist!" << endl;
         return;
     }
     
     readMPR();
-
+    this->context = new FHEcontext(m, p, r);
     string strContext = readFromFile(CONTEXTFILE);
     Bytes2FHEContext(strContext);
-    
+
+    this->pubkey = new FHESecKey(*(this->context));
     string strPubKey = readFromFile(PUBKEYFILE);
     Bytes2FHEPubKey(strPubKey);
     
@@ -192,6 +184,23 @@ void CryptoUtility::Bytes2FHESecKey(const string & x){
     this->seckey = new FHESecKey(*(this->context));
     memcpy(this->seckey, y.c_str(), sizeof(FHESecKey));
 }
+
+void CryptoUtility::writeFHE2File(){
+    writeMPR();
+    string strContext = FHE2Bytes(this->context, sizeof(FHEcontext));
+    write2File(CONTEXTFILE, strContext);
+
+    string strPubKey = FHE2Bytes(this->pubkey, sizeof(FHEPubKey));
+    write2File(PUBKEYFILE, strPubKey);
+
+    string strSecKey = FHE2Bytes(this->seckey, sizeof(FHESecKey));
+    write2File(SECKEYFILE, strSecKey);
+}
+
+void CryptoUtility::readFHEFromFile(){
+
+}
+
 
 void CryptoUtility::writeMPR(){
     ofstream out(BASEFILE, ios::out);

@@ -19,6 +19,8 @@
 #include <queue>
 
 #include "PTree.h"
+#include "common.h"
+#include "Base64.h"
 
 using namespace std;
 
@@ -37,6 +39,12 @@ PTree::~PTree(){
 }
 
 void PTree::updatePTree(const uint16_t * ids, const uint16_t & numAdd2Weights){
+    cout << "[Info] updata PTree" << endl;
+    
+    if(numAdd2Weights != power_two(this->depth)){
+        cerr << "[Error] PTree::updatePTree() -- number of adding to Weights is NOT OK" << endl;
+    }
+
     this->maxElems *= 2;
     this->depth += 1;
 
@@ -150,4 +158,22 @@ void PTree::deleteTree(Node * root){
         deleteTree(root->getRightChild());
         delete root;
     }
+}
+
+string PTree::Ctxt2Bytes(Ctxt * src){
+    unsigned char pstr[sizeof(Ctxt)];
+    char * start = reinterpret_cast<char *>(src);
+    for(unsigned int i = 0; i < sizeof(Ctxt); i++){
+        pstr[i] = *(start + i);
+    }
+    string _return = base64_encode(pstr, sizeof(Ctxt));
+    return _return;
+}
+
+Ctxt * PTree::Bytes2Ctxt(const string & x){
+    string y = base64_decode(x);
+    char * p = const_cast<char *>(y.c_str());
+    Ctxt * _return = NULL;
+    _return = reinterpret_cast<Ctxt *>(p);
+    return _return;
 }

@@ -3,7 +3,7 @@ COMPILE_FLAGS := -I/. -g -Wall -fexceptions
 LIBS := ./libs/fhe/fhe.a -lntl -lgmp -lmysqlclient -lmd
 LINK_FLAGS := -L/.
 
-all : main.o CryptoUtility.o Node.o PTree.o VTree.o common.o DBUtility.o Base64.o#auth_ds.o crypto_fhe_utility.o p_tree.o p_list.o v_tree.o v_list.o#MyDB.o
+all : main.o common.o Base64.o CryptoUtility.o Node.o PTree.o VTree.o DBUtility.o #auth_ds.o crypto_fhe_utility.o p_tree.o p_list.o v_tree.o v_list.o#MyDB.o
 	$(CXX) -o a.out $^ $(LINK_FLAGS) $(LIBS)
 	@echo
 	@echo "========================================================="

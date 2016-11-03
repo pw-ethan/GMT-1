@@ -45,7 +45,7 @@ ZZ *gen_weights(const int num)
     }*/
     ZZ * result = new ZZ[num];
     for(int i = 0; i < num; i++){
-        result[i] = to_ZZ(i+1);
+        result[i] = to_ZZ(i+2);
     }
     return result;
 }
