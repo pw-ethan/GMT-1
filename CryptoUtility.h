@@ -27,33 +27,18 @@ public:
     void initFHE();
     void initFHEByVerifier();
     void initFHEByProver();
-    /*
+    
     Ctxt * encrypt(const ZZ & plaintext);
-    ZZ * decrypt(const Ctxt & ciphertext);
+    ZZX * decrypt(const Ctxt & ciphertext);
 
+public:
+    string Ctxt2Bytes(const Ctxt & x);
+    Ctxt * Bytes2Ctxt(const string & x);
+
+    /*
     FHEcontext * getContext();
     FHESecKey *getSecKey();
     FHEPubKey *getPubKey();
-*/
-    //void FHEPubKey2File();
-    //FHEPubKey * File2FHEPubKey();
-
-    //void FHEContext2File();
-    //FHEcontext * File2FHEContext();
-/*
-private:
-    void write2File(const char * path, const string & content);
-    string readFromFile(const char * path);
-    string FHE2Bytes(void * src, unsigned int len);
-    void Bytes2FHEContext(const string & x);
-    void Bytes2FHEPubKey(const string & x);
-    void Bytes2FHESecKey(const string & x);
-    void writeMPR();
-    void readMPR();
-
-public:
-    void writeFHE2File();
-    void readFHEFromFile();
 */
 private:
     FHEcontext *context;

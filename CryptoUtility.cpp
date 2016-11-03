@@ -17,6 +17,10 @@
 #include "CryptoUtility.h"
 
 #include <fstream>
+#include <sstream>
+#include <vector>
+
+#include <unistd.h>
 
 #include "config.h"
 
@@ -26,11 +30,12 @@
 
 
 CryptoUtility::CryptoUtility() {
-    cout << "[Info] CryptoUtility::CryptoUtility() ..." << endl;
+    context = NULL;
+    pubkey = NULL;
+    seckey = NULL;
 }
 
 CryptoUtility::~CryptoUtility() {
-    cout << "[Info] CryptoUtility::~CryptoUtility() ..." << endl;
 }
 
 void CryptoUtility::initFHE() {
@@ -56,31 +61,31 @@ void CryptoUtility::initFHE() {
     seckey = new FHESecKey(*context);
     seckey->GenSecKey(w);
 
-    pubkey = *seckey;
+    pubkey = seckey;
 
     // write FHEcontext/FHEPubKey/FHESecKey to file
     ofstream osc(CONTEXTFILE, ios::binary);
     if(osc.is_open()){
-        writeContextBase(osc, context);
-        osc << context;
+        writeContextBase(osc, *context);
+        osc << *context;
         osc.close();
     }
 
     ofstream osp(PUBKEYFILE, ios::binary);
     if(osp.is_open()){
-        osp << pubkey;
+        osp << *pubkey;
         osp.close();
     }
 
     ofstream oss(SECKEYFILE, ios::binary);
     if(oss.is_open()){
-        oss << seckey;
+        oss << *seckey;
         oss.close();
     }
 
     cout << "[Info] Initializing OK" << endl;
 }
-/*
+
 void CryptoUtility::initFHEByVerifier(){
     cout << "[Info] Initializing by Verifier ..." << endl;
     if(access(SECKEYFILE, F_OK) == -1){
@@ -92,19 +97,30 @@ void CryptoUtility::initFHEByVerifier(){
         cerr << "[Error] context.key or pubkey.key does not exist!" << endl;
         return;
     }
+
+    vector<long> gens, ords;
+    unsigned long m, p, r;
+    ifstream isc(CONTEXTFILE, ios::binary);
+    if(isc.is_open()){
+        readContextBase(isc, m, p, r, gens, ords);
+        context = new FHEcontext(m, p, r, gens, ords);
+        isc >> *context;
+        isc.close();
+    }
+
+    ifstream isp(PUBKEYFILE, ios::binary);
+    if(isp.is_open()){
+        pubkey = new FHEPubKey(*context);
+        isp >> *pubkey;
+        isp.close();
+    }
     
-    readMPR();
-    this->context = new FHEcontext(m, p, r);
-    string strContext = readFromFile(CONTEXTFILE);
-    Bytes2FHEContext(strContext);
-
-    this->pubkey = new FHESecKey(*(this->context));
-    string strPubKey = readFromFile(PUBKEYFILE);
-    Bytes2FHEPubKey(strPubKey);
-
-    this->seckey = new FHESecKey(*(this->context));
-    string strSecKey = readFromFile(SECKEYFILE);
-    Bytes2FHESecKey(strSecKey);
+    ifstream iss(SECKEYFILE, ios::binary);
+    if(iss.is_open()){
+        seckey = new FHESecKey(*context);
+        iss >> *seckey;
+        iss.close();
+    }
 
     cout << "[Info] Initializing OK" << endl;
 }
@@ -115,29 +131,54 @@ void CryptoUtility::initFHEByProver(){
         cerr << "[Error] context.key or pubkey.key does not exist!" << endl;
         return;
     }
-    
-    readMPR();
-    this->context = new FHEcontext(m, p, r);
-    string strContext = readFromFile(CONTEXTFILE);
-    Bytes2FHEContext(strContext);
 
-    this->pubkey = new FHESecKey(*(this->context));
-    string strPubKey = readFromFile(PUBKEYFILE);
-    Bytes2FHEPubKey(strPubKey);
-    
+    vector<long> gens, ords;
+    unsigned long m, p, r;
+    ifstream isc(CONTEXTFILE, ios::binary);
+    if(isc.is_open()){
+        readContextBase(isc, m, p, r, gens, ords);
+        context = new FHEcontext(m, p, r, gens, ords);
+        isc >> *context;
+        isc.close();
+    }
+
+    ifstream isp(PUBKEYFILE, ios::binary);
+    if(isp.is_open()){
+        pubkey = new FHEPubKey(*context);
+        isp >> *pubkey;
+        isp.close();
+    }
+
     cout << "[Info] Initializing OK" << endl;
 }
 
 Ctxt * CryptoUtility::encrypt(const ZZ & plaintext){
-    Ctxt * ciphertext = new Ctxt(*(this->pubkey));
+    Ctxt * ciphertext = new Ctxt(*pubkey);
+    pubkey->Encrypt(*ciphertext, NTL::to_ZZX(plaintext));
     return ciphertext;
 }
 
-ZZ * CryptoUtility::decrypt(const Ctxt & ciphertext){
-    ZZ * plaintext = new ZZ();
+ZZX * CryptoUtility::decrypt(const Ctxt & ciphertext){
+    ZZX * plaintext = new ZZX();
+    seckey->Decrypt(*plaintext, ciphertext);
     return plaintext;
 }
 
+string CryptoUtility::Ctxt2Bytes(const Ctxt & x){
+    stringstream ss;
+    ss << x;
+    string _return = ss.str();
+    return _return;
+}
+
+Ctxt * CryptoUtility::Bytes2Ctxt(const string & x){
+    Ctxt * _return = new Ctxt(*pubkey);
+    stringstream ss(x);
+    ss >> *_return;
+    return _return;
+}
+
+/*
 FHEPubKey *CryptoUtility::getPubKey() {
     return pubkey;
 }
@@ -146,86 +187,7 @@ FHESecKey *CryptoUtility::getSecKey() {
     return seckey;
 }
 
-void CryptoUtility::write2File(const char * path, const string & content){
-    ofstream out(path, ios::out|ios::binary);
-    out << content;
-    out.close();
-}
-
-string CryptoUtility::readFromFile(const char * path){
-    ifstream in(path, ios::in|ios::binary);
-    string _return;
-    in >> _return;
-    in.close();
-    return _return;
-}
-
 FHEcontext * CryptoUtility::getContext(){
     return this->context;
 }
-
-string CryptoUtility::FHE2Bytes(void * src, unsigned int len){
-    unsigned char pstr[len];
-    char * start = reinterpret_cast<char *>(src);
-    for(unsigned int i = 0; i < len; i++){
-        pstr[i] = *(start + i);
-    }
-    //memcpy(pstr, src, len);
-    string _return = base64_encode(pstr, len);
-    return _return;
-}
-
-void CryptoUtility::Bytes2FHEContext(const string & x){
-    string y = base64_decode(x);
-    char * p = const_cast<char *>(y.c_str());
-    this->context = (FHEcontext *)calloc(1, sizeof(FHEcontext));
-    //this->context = new FHEcontext(this->m, this->p, this->r);
-    memcpy(this->context, p, sizeof(FHEcontext));
-}
-
-void CryptoUtility::Bytes2FHEPubKey(const string & x){
-    string y = base64_decode(x);
-    char * p = const_cast<char *>(y.c_str());
-    this->pubkey = (FHEPubKey *)calloc(1, sizeof(FHEPubKey));
-    //this->pubkey = new FHESecKey(*(this->context));
-    memcpy(this->pubkey, p, sizeof(FHEPubKey));
-}
-
-void CryptoUtility::Bytes2FHESecKey(const string & x){
-    string y = base64_decode(x);
-    this->seckey = new FHESecKey(*(this->context));
-    memcpy(this->seckey, y.c_str(), sizeof(FHESecKey));
-}
-
-void CryptoUtility::writeFHE2File(){
-    writeMPR();
-    string strContext = FHE2Bytes(this->context, sizeof(FHEcontext));
-    write2File(CONTEXTFILE, strContext);
-
-    string strPubKey = FHE2Bytes(this->pubkey, sizeof(FHEPubKey));
-    write2File(PUBKEYFILE, strPubKey);
-
-    string strSecKey = FHE2Bytes(this->seckey, sizeof(FHESecKey));
-    write2File(SECKEYFILE, strSecKey);
-}
-
-void CryptoUtility::readFHEFromFile(){
-
-}
-
-
-void CryptoUtility::writeMPR(){
-    ofstream out(BASEFILE, ios::out);
-    out << this->m << endl;
-    out << this->p << endl;
-    out << this->r << endl;
-    out.close();
-}
-
-void CryptoUtility::readMPR(){
-    ifstream in(BASEFILE, ios::in);
-    in >> this->m;
-    in >> this->p;
-    in >> this->r;
-    in.close();
-}*/
+*/

@@ -38,50 +38,33 @@ int main()
 
 #ifdef DEBUG_CRYPTO
 
-    CryptoUtility * cy = new CryptoUtility();
-    cy->initFHE();
-    //cy->writeFHE2File();
+    //CryptoUtility * cy = new CryptoUtility();
+    //cy->initFHE();
 
-    //CryptoUtility * cyv = new CryptoUtility();
-    //cyv->initFHEByVerifier();
-    //cyv->initFHE();
+    CryptoUtility * cyp = new CryptoUtility();
+    cyp->initFHEByProver();
 
-    //CryptoUtility * cyp = new CryptoUtility();
-    //cyp->initFHEByProver();
-/*
-    ZZ a = to_ZZ("123");
+    ZZ a = to_ZZ("12");
     cout << "a: " << a << endl;
 
     Ctxt * pct = cyp->encrypt(a);
-    cout << "ct: " << *pct << endl;
+    *pct *= *pct;
 
-    ZZ * b = cyp->decrypt(*pct);
-    cout << "pt: " << *b << endl;
-    cout << *b << endl;
-*/
+    string sct = cyp->Ctxt2Bytes(*pct);
+    
+    cout << sct.length() << endl;
 
-/*
-    if(*(cyv->getContext()) == *(cyp->getContext())){
-        cout << "[Info] v&p context equals" << endl;
-    }
+    CryptoUtility * cyv = new CryptoUtility();
+    cyv->initFHEByVerifier();
 
-    if(*(cy->getSecKey()) == *(cyv->getSecKey())){
-        cout << "[Info] seckey equals" << endl;
-    }
-*/
-/*
-    cout << "cy context:";
-    memory_dump(cy->getContext(), 32);
+    Ctxt *pct2 = cyv->Bytes2Ctxt(sct);
 
-    cout << "cyv context:";
-    memory_dump(cyv->getContext(), 32);
+    ZZX * ppt = cyv->decrypt(*pct2);
+    cout << *ppt << endl;
 
-    cout << "cyp context:";
-    memory_dump(cyp->getContext(), 32);
-*/
-    //delete cyp;
-    //delete cyv;
-    delete cy;
+    delete cyp;
+    delete cyv;
+    //delete cy;
 
 #endif
 
