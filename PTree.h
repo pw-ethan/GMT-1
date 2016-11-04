@@ -44,8 +44,5 @@ private:
     Node * getPosition(Node * root);
     void deleteTree(Node * root);
     void printTree(Node * root);
-public:
-    string Ctxt2Bytes(Ctxt * src);
-    Ctxt * Bytes2Ctxt(const string & x);
 };
 

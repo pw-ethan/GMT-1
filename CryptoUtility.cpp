@@ -153,12 +153,20 @@ void CryptoUtility::initFHEByProver(){
 }
 
 Ctxt * CryptoUtility::encrypt(const ZZ & plaintext){
+    if(pubkey == NULL){
+        cout << "[Error] CryptoUtility::encrypt() -- pubkey is NOT OK!" << endl;
+        return NULL;
+    }
     Ctxt * ciphertext = new Ctxt(*pubkey);
     pubkey->Encrypt(*ciphertext, NTL::to_ZZX(plaintext));
     return ciphertext;
 }
 
 ZZX * CryptoUtility::decrypt(const Ctxt & ciphertext){
+    if(seckey == NULL){
+        cout << "[Error] CryptoUtility::decrypt() -- seckey is NOT OK!" << endl;
+        return NULL;
+    }
     ZZX * plaintext = new ZZX();
     seckey->Decrypt(*plaintext, ciphertext);
     return plaintext;

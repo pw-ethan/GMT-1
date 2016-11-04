@@ -5,7 +5,7 @@
 #include "common.h"
 #include "memory_dump.h"
 
-#define DEBUG_CRYPTO
+#define DEBUG_VTREE
 
 #ifdef DEBUG_CRYPTO
 #include "CryptoUtility.h"
@@ -38,8 +38,8 @@ int main()
 
 #ifdef DEBUG_CRYPTO
 
-    //CryptoUtility * cy = new CryptoUtility();
-    //cy->initFHE();
+    CryptoUtility * cy = new CryptoUtility();
+    cy->initFHE();
 
     CryptoUtility * cyp = new CryptoUtility();
     cyp->initFHEByProver();
@@ -64,7 +64,7 @@ int main()
 
     delete cyp;
     delete cyv;
-    //delete cy;
+    delete cy;
 
 #endif
 
@@ -72,7 +72,7 @@ int main()
 #ifdef DEBUG_PTREE
 
     CryptoUtility *cy = new CryptoUtility();
-    cy->initFHE();
+    cy->initFHEByVerifier();
 
     PTree * pt = new PTree();
     pt->printPTree();
@@ -80,16 +80,12 @@ int main()
     ZZ v2 = to_ZZ("2");
     ZZ v3 = to_ZZ("3");
 
-    Ctxt * ct2 = new Ctxt(*(cy->getPubKey()));
-    Ctxt * ct3 = new Ctxt(*(cy->getPubKey()));
+    Ctxt * ct2 = cy->encrypt(v2);
+    Ctxt * ct3 = cy->encrypt(v3);
 
-    cy->getPubKey()->Encrypt(*ct2, to_ZZX(v2));
-    cy->getPubKey()->Encrypt(*ct3, to_ZZX(v3));
-
-    string str2 = pt->Ctxt2Bytes(ct2);
+    string str2 = cy->Ctxt2Bytes(*ct2);
     
-    Ctxt *ctt2= new Ctxt(*(cy->getPubKey()));
-    ctt2 = pt->Bytes2Ctxt(str2);
+    Ctxt * ctt2 = cy->Bytes2Ctxt(str2);
 
     memory_dump(ct2, sizeof(Ctxt));
     memory_dump(ctt2, sizeof(Ctxt));
@@ -97,10 +93,9 @@ int main()
     Ctxt ctSum(*ctt2);
     ctSum += *ct3;
 
-    ZZX vSum;
-    cy->getSecKey()->Decrypt(vSum, ctSum);
+    ZZX * vSum = cy->decrypt(ctSum);
 
-    cout << "2 + 3 = " << vSum[0] << endl;
+    cout << "2 + 3 = " << *vSum << endl;
 
 /*
     for(uint16_t i = 0; i < 3; i++){
@@ -113,7 +108,7 @@ int main()
         pt->printPTree();
     }
 */
-    //delete ctt2;
+    delete ctt2;
     delete ct3;
     delete ct2;
     delete pt;
@@ -124,14 +119,7 @@ int main()
 #ifdef DEBUG_VTREE
     VTree * vt = new VTree();
     vt->printVTree();
-/*
-    for(uint16_t i = 0; i < 3; i++){
-        uint16_t numAdd2Weights = power_two(i);
-        ZZ * weights = gen_weights(numAdd2Weights);
-        vt->updateVTree(weights, numAdd2Weights);
-        vt->printVTree();
-    }
-*/
+    
     cout << "Evidence: " << vt->getEvidence() << endl;
 
     ZZ tmp = to_ZZ("2");

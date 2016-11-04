@@ -14,11 +14,12 @@
  *  说明: 
  ******************************************************************/
 
+#include "PTree.h"
+
 #include <iostream>
 #include <vector>
 #include <queue>
 
-#include "PTree.h"
 #include "common.h"
 #include "Base64.h"
 
@@ -159,7 +160,7 @@ void PTree::deleteTree(Node * root){
         delete root;
     }
 }
-
+/*
 string PTree::Ctxt2Bytes(Ctxt * src){
     unsigned char pstr[sizeof(Ctxt)];
     char * start = reinterpret_cast<char *>(src);
@@ -176,4 +177,4 @@ Ctxt * PTree::Bytes2Ctxt(const string & x){
     Ctxt * _return = NULL;
     _return = reinterpret_cast<Ctxt *>(p);
     return _return;
-}
+}*/

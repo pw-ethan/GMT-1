@@ -78,7 +78,7 @@ string DBUtility::queryDB(const string & tb_name, const int & index){
     stringstream ss;
     ss << "select weight from " << tb_name <<" where id=" << index;
     string strsql = ss.str();
-    cout << strsql << endl;
+    cout << "[Info] " << strsql << endl;
     if(mysql_real_query(connection, strsql.c_str(), strsql.length())){
         cerr << "[Error] DBUtility::queryDB() -- mysql_real_query() is NOT OK!" << endl;
         return NULL;
@@ -98,7 +98,7 @@ bool DBUtility::insertDB(const string & tb_name, const int & index, const string
     stringstream ss;
     ss << "insert into " << tb_name << " values(" << index <<", '" << content << "')";
     string strsql = ss.str();
-    cout << strsql << endl;
+    cout << "[Info] " << strsql << endl;
     int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
     if(ret){
         return false;
@@ -110,7 +110,7 @@ bool DBUtility::updateDB(const string & tb_name, const int & index, const string
     stringstream ss;
     ss << "update " << tb_name << " set weight='" << content << "' where id=" << index;
     string strsql = ss.str();
-    cout << strsql << endl;
+    cout << "[Info] " << strsql << endl;
     int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
     if(ret){
         return false;
@@ -130,7 +130,7 @@ void DBUtility::endSQL(const bool & ret){
 
 void DBUtility::deleteDB(){
     string strsql = "delete from weights";
-    cout << endl << strsql << endl;
+    cout << "[Info] " << strsql << endl;
     startSQL();
     int ret = mysql_query(connection, strsql.c_str());
     if(ret){
