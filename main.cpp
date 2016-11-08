@@ -4,11 +4,13 @@
 
 #include "common.h"
 #include "memory_dump.h"
+#include "config.h"
 
-#define DEBUG_VTREE
+#define DEBUG_PTREE
 
 #ifdef DEBUG_CRYPTO
 #include "CryptoUtility.h"
+#include "DBUtility.h"
 #endif
 
 #ifdef DEBUG_PTREE
@@ -17,7 +19,6 @@
 
 #ifdef DEBUG_DB
 #include "DBUtility.h"
-#include "config.h"
 #include "VTree.h"
 #include "Base64.h"
 #endif
@@ -41,6 +42,29 @@ int main()
     CryptoUtility * cy = new CryptoUtility();
     cy->initFHE();
 
+    DBUtility * db = new DBUtility();
+    db->initDB("localhost", "root", "1234", "gmt_1_p");
+
+    ZZ a = to_ZZ("2");
+    ZZ b = to_ZZ("3");
+
+    Ctxt * cta = cy->encrypt(a);
+    Ctxt * ctb = cy->encrypt(b);
+
+    string stra = cy->Ctxt2Bytes(*cta);
+    string strb = cy->Ctxt2Bytes(*ctb);
+
+    bool _res = true;
+    db->startSQL();
+    _res = db->insertDB("weights_p", 0, stra);
+    
+    db->insertDB("weights_p", 1, strb);
+
+    db->endSQL(_res);
+
+    //db->deleteDB("weights_p");
+    delete db;
+/*
     CryptoUtility * cyp = new CryptoUtility();
     cyp->initFHEByProver();
 
@@ -64,6 +88,7 @@ int main()
 
     delete cyp;
     delete cyv;
+*/
     delete cy;
 
 #endif
@@ -71,48 +96,33 @@ int main()
 
 #ifdef DEBUG_PTREE
 
+    PTree * pt = new PTree();
+    pt->printPTree();
+    
     CryptoUtility *cy = new CryptoUtility();
     cy->initFHEByVerifier();
 
-    PTree * pt = new PTree();
-    pt->printPTree();
+    ZZ tmp = to_ZZ("2");
 
-    ZZ v2 = to_ZZ("2");
-    ZZ v3 = to_ZZ("3");
-
-    Ctxt * ct2 = cy->encrypt(v2);
-    Ctxt * ct3 = cy->encrypt(v3);
-
-    string str2 = cy->Ctxt2Bytes(*ct2);
-    
-    Ctxt * ctt2 = cy->Bytes2Ctxt(str2);
-
-    memory_dump(ct2, sizeof(Ctxt));
-    memory_dump(ctt2, sizeof(Ctxt));
-
-    Ctxt ctSum(*ctt2);
-    ctSum += *ct3;
-
-    ZZX * vSum = cy->decrypt(ctSum);
-
-    cout << "2 + 3 = " << *vSum << endl;
-
-/*
-    for(uint16_t i = 0; i < 3; i++){
-        uint16_t numAdd2Weights = power_two(i);
-        uint16_t ids[numAdd2Weights];
-        for(uint16_t j = 0; j < numAdd2Weights; j++){
-            ids[j] = j + 1;
+    for(int i = 0; i < 4; i++){
+        if(pt->getNumElems() == pt->getMaxElems()){
+            uint16_t numAdd2Weights = power_two(pt->getDepth());
+            ZZ * weights = gen_weights(numAdd2Weights);
+            string strWeights[numAdd2Weights];
+            for(uint16_t i = 0; i < numAdd2Weights; i++){
+                strWeights[i] = cy->Ctxt2Bytes(*(cy->encrypt(weights[i])));
+            }
+            pt->updatePTree(strWeights, numAdd2Weights);
+            pt->printPTree();
         }
-        pt->updatePTree(ids, numAdd2Weights);
-        pt->printPTree();
+        cout << endl << "add " << i << "th value" << endl;
+        pt->addValue(tmp);
     }
-*/
-    delete ctt2;
-    delete ct3;
-    delete ct2;
-    delete pt;
+
+    pt->test();
+
     delete cy;
+    delete pt;
 
 #endif
 

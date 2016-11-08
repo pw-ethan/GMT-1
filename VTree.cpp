@@ -42,7 +42,7 @@ VTree::VTree(){
 }
 
 VTree::~VTree(){
-    this->db->deleteDB();
+    this->db->deleteDB("weights");
     delete this->db;
     deleteTree(this->root);
 }

@@ -39,5 +39,5 @@ class DBUtility
     private:
         MYSQL *connection;
     public:
-        void deleteDB();
+        void deleteDB(const string & tb_name);
 };

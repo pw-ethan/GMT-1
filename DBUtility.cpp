@@ -98,7 +98,7 @@ bool DBUtility::insertDB(const string & tb_name, const int & index, const string
     stringstream ss;
     ss << "insert into " << tb_name << " values(" << index <<", '" << content << "')";
     string strsql = ss.str();
-    cout << "[Info] " << strsql << endl;
+    //cout << "[Info] " << strsql << endl;
     int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
     if(ret){
         return false;
@@ -110,7 +110,7 @@ bool DBUtility::updateDB(const string & tb_name, const int & index, const string
     stringstream ss;
     ss << "update " << tb_name << " set weight='" << content << "' where id=" << index;
     string strsql = ss.str();
-    cout << "[Info] " << strsql << endl;
+    //cout << "[Info] " << strsql << endl;
     int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
     if(ret){
         return false;
@@ -120,16 +120,20 @@ bool DBUtility::updateDB(const string & tb_name, const int & index, const string
 
 void DBUtility::endSQL(const bool & ret){
     if(!ret){
+        cout << "ROLLBACK" << endl;
         mysql_query(connection, "ROLLBACK");
     }else{
+        cout << "COMMIT" << endl;
         mysql_query(connection, "COMMIT");
     }
     cout << "[Info] DBUtility::endSQL() -- end transaction" << endl;
     cout << endl;
 }
 
-void DBUtility::deleteDB(){
-    string strsql = "delete from weights";
+void DBUtility::deleteDB(const string & tb_name){
+    stringstream ss;
+    ss << "delete from " << tb_name;
+    string strsql = ss.str();
     cout << "[Info] " << strsql << endl;
     startSQL();
     int ret = mysql_query(connection, strsql.c_str());

@@ -21,17 +21,25 @@
 
 #include "Node.h"
 #include "CryptoUtility.h"
+#include "DBUtility.h"
 
 class PTree
 {
 public:
     PTree();
     virtual ~PTree();
-    
+
     /* update Prover's weights tree and values tree */
-    void updatePTree(const uint16_t * ids, const uint16_t & numAdd2Weights);
+    bool updatePTree(const string * strWeights, const uint16_t & numAdd2Weights);
+    /* add value */
+    bool addValue(const ZZ & value);
     /* Traversing the weights tree by level */
     void printPTree();
+    uint16_t getMaxElems();
+    uint16_t getNumElems();
+    uint16_t getDepth();
+
+    void test();
 
 private:
     uint16_t depth;
@@ -39,10 +47,14 @@ private:
     uint16_t maxElems;
     Node * rootWeights;
     Node * rootValues;
+    DBUtility * db;
+    CryptoUtility * cy;
 
 private:
     Node * getPosition(Node * root);
     void deleteTree(Node * root);
     void printTree(Node * root);
+    string ZZ2Bytes(const ZZ & x);
+    ZZ Bytes2ZZ(const string & x);
 };
 
