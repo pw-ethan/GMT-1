@@ -39,7 +39,7 @@ public:
     uint16_t getNumElems();
     uint16_t getDepth();
 
-    void test();
+    string test();
 
 private:
     uint16_t depth;

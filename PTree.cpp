@@ -40,13 +40,14 @@ PTree::PTree(){
     this->db = new DBUtility();
     this->db->initDB(PHOST, PUSER, PPWD, PDB_NAME);
     this->cy = new CryptoUtility();
-    this->cy->initFHEByVerifier();
+    this->cy->initFHEByProver();
 }
 
 PTree::~PTree(){
     delete this->cy;
     this->db->deleteDB("weights_p");
-    //this->db->deleteDB("values_p");
+    this->db->deleteDB("values_p");
+    this->db->deleteDB("leaves");
     delete this->db;
     deleteTree(this->rootWeights);
     deleteTree(this->rootValues);
@@ -61,8 +62,6 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
 
     this->maxElems *= 2;
     this->depth += 1;
-    
-    cout << "tag 1:" << depth << endl;
 
     this->db->startSQL();
     bool _return = true;
@@ -122,9 +121,19 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
             break;
         }
     }
+
+    string strtopweight = this->db->queryDB("weights_p", this->rootWeights->getLeftChild()->getID());
+    Ctxt * topweight = this->cy->Bytes2Ctxt(strtopweight);
+    Ctxt * topvalue = NULL;
     if(numAdd2Values == 1){
-        ////here
+        string strtopvalue = this->db->queryDB("leaves", 0);
+        topvalue = this->cy->encrypt(Bytes2ZZ(strtopvalue));
+    }else{
+        topvalue = this->cy->Bytes2Ctxt(this->db->queryDB("values_p", this->rootValues->getID()));
     }
+    *topvalue *= *topweight;
+    this->db->updateDB("values_p", numAdd2Values, this->cy->Ctxt2Bytes(*topvalue));
+
     this->db->endSQL(_res);
 
     node = new Node(idst[0]);
@@ -322,9 +331,10 @@ Ctxt * PTree::Bytes2Ctxt(const string & x){
 
 
 
-void PTree::test(){
+string PTree::test(){
     string strv = this->db->queryDB("values_p", this->rootValues->getID());
-    Ctxt * cv = this->cy->Bytes2Ctxt(strv);
-    ZZX * pv = this->cy->decrypt(*cv);
-    cout << *pv << endl;
+    //Ctxt * cv = this->cy->Bytes2Ctxt(strv);
+    //ZZX * pv = this->cy->decrypt(*cv);
+    //cout << *pv << endl;
+    return strv;
 }

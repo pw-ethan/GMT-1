@@ -119,7 +119,10 @@ int main()
         pt->addValue(tmp);
     }
 
-    pt->test();
+    string strv = pt->test();
+    Ctxt * cv = cy->Bytes2Ctxt(strv);
+    ZZX * pv = cy->decrypt(*cv);
+    cout << *pv << endl;
 
     delete cy;
     delete pt;
@@ -129,7 +132,7 @@ int main()
 #ifdef DEBUG_VTREE
     VTree * vt = new VTree();
     vt->printVTree();
-    
+
     cout << "Evidence: " << vt->getEvidence() << endl;
 
     ZZ tmp = to_ZZ("2");
