@@ -6,7 +6,14 @@
 #include "memory_dump.h"
 #include "config.h"
 
-#define DEBUG_PTREE
+#define DEBUG_C
+
+#ifdef DEBUG_C
+#include "CryptoUtility.h"
+#include "VTree.h"
+#include "PTree.h"
+#include "DSAuth.h"
+#endif
 
 #ifdef DEBUG_CRYPTO
 #include "CryptoUtility.h"
@@ -31,11 +38,65 @@
 using namespace std;
 using namespace NTL;
 
+
 int main()
 {
     clock_t startTime, endTime;
     startTime = clock();
 //===============================================
+#ifdef DEBUG_C
+
+    srand((unsigned)(time(NULL)));
+    // Initialization - Verifier's Tree
+    VTree *vt = new VTree();
+
+    // Initialization - Prover's Tree
+    PTree *pt = new PTree();
+
+    // 10 times insertion and some times random query
+    for(uint16_t i = 0; i < 10; i++){
+        // Check whether it is full, if so, update
+        if(vt->isFull()){
+            // Generate weights(ZZ type)
+            uint16_t numAdd2Weights = vt->getNumAdd2Weights();
+            ZZ * weights = vt->genWeights(numAdd2Weights);
+            // Update Verifier
+            vt->updateVTree(weights, numAdd2Weights);
+            vt->printVTree();
+            // Encrypt weights and publish
+            string strWeights[numAdd2Weights];
+            vt->weights2Str(weights, strWeights, numAdd2Weights);
+            // Update Prover
+            pt->updatePTree(strWeights, numAdd2Weights);
+        }
+        // Insert value to Verifier and Prover
+        ZZ value = genRandomValue();
+        cout << "[Info] Add value_" << i << " : " << value << endl;
+        vt->addValue(value);
+        pt->addValue(value);
+        // random query
+        if(value % 2 == 0){
+            DSAuth ds;
+            pt->queryValue(i - 1, ds);
+            cout << "query data : " << vt->Bytes2ZZ(ds.getQueryData()) << endl;
+        }
+
+
+    }
+
+
+
+    delete pt;
+    delete vt;
+
+#endif
+
+
+#ifdef DEBUG_SOCKET
+
+
+#endif
+
 
 #ifdef DEBUG_CRYPTO
 

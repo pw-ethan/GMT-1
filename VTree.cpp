@@ -39,9 +39,12 @@ VTree::VTree(){
     this->root = new Node(0);
     this->db = new DBUtility();
     this->db->initDB(VHOST, VUSER, VPWD, VDB_NAME);
+    this->cy = new CryptoUtility();
+    this->cy->initFHEByVerifier();
 }
 
 VTree::~VTree(){
+    delete this->cy;
     this->db->deleteDB("weights");
     delete this->db;
     deleteTree(this->root);
@@ -135,7 +138,7 @@ bool VTree::addValue(const ZZ & value){
 
         string result = this->db->queryDB("weights", point->getID());
         if(result.empty()){
-            cerr << "[Info] VTree::addValue() -- Geting ZZ from DB is NOT OK" << endl;
+            cerr << "[Error] VTree::addValue() -- Getting ZZ from DB is NOT OK" << endl;
             _return = false;
             break;
         }
@@ -180,6 +183,10 @@ void VTree::printVTree(){
     vector<Node *>().swap(vec);
 }
 
+bool VTree::verify(const uint16_t index, const DSAuth & ds){
+    
+}
+
 
 ZZ VTree::getEvidence(){
     return this->evidence;
@@ -188,6 +195,36 @@ ZZ VTree::getEvidence(){
 void VTree::setEvidence(const ZZ & value){
     this->evidence = value;
 }*/
+
+bool VTree::isFull(){
+    if(this->numElems == this->maxElems) return true;
+    return false;
+}
+
+uint16_t VTree::getNumAdd2Weights(){
+    return power_two(this->depth);
+}
+
+ZZ * VTree::genWeights(const int num){
+    /*
+    ZZ *_return = new ZZ[num];
+    SetSeed(to_ZZ(time(NULL)));
+    for(int i = 0; i < num; i++){
+        RandomLen(_return[i], 16);
+    }
+    */
+    ZZ *_return = new ZZ[num];
+    for(int i = 0; i < num; i++){
+        _return[i] = to_ZZ(i+2);
+    }
+    return _return;
+}
+
+void VTree::weights2Str(const ZZ * weights, string * strWeights, uint16_t numAdd2Weights){
+    for(uint16_t i = 0; i < numAdd2Weights; i++){
+        strWeights[i] = this->cy->Ctxt2Bytes(*(this->cy->encrypt(weights[i])));
+    }
+}
 
 uint16_t VTree::getDepth(){
     return this->depth;

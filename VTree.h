@@ -18,9 +18,12 @@
 #include <NTL/ZZ.h>
 #include <stdint.h>
 #include <string>
+#include "./libs/fhe/FHE.h"
 
 #include "Node.h"
 #include "DBUtility.h"
+#include "CryptoUtility.h"
+#include "DSAuth.h"
 
 using namespace NTL;
 using namespace std;
@@ -33,12 +36,23 @@ public:
 
     /* update Verifier's weights tree */
     bool updateVTree(const ZZ * weights, const uint16_t &numAdd2Weights);
-    /* add value and update evidence */
+    /* Add value and update evidence */
     bool addValue(const ZZ & value);
     /* Traversing the weights tree by level */
     void printVTree();
+    /* Verify query result using DSAuth */
+    bool verify(const uint16_t index, const DSAuth & ds);
 
     ZZ getEvidence();
+    
+    // check whether the tree is full or not
+    bool isFull();
+    // get the number to add weights tree
+    uint16_t getNumAdd2Weights();
+    // generate weights(ZZ type)
+    ZZ * genWeights(const int num);
+    // encrypt weights and publish them
+    void weights2Str(const ZZ * weigths, string * strWeights, uint16_t numAdd2Weights);
     //void setEvidence(const ZZ & value);
     uint16_t getDepth();
     //void setDepth(const uint16_t & depth);
@@ -54,6 +68,7 @@ private:
     Node * root;            // the root of Verifier's weights tree
     uint16_t maxElems;
     DBUtility *db;
+    CryptoUtility *cy;
 
 private:
     void deleteTree(Node * root);

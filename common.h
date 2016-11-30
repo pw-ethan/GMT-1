@@ -31,6 +31,8 @@ uint16_t power_two(uint16_t n);
 
 ZZ *gen_weights(const int num);
 
+ZZ genRandomValue();
+
 //string toBytes(void* src, int len);
 
 //double getDouble(const string &x);

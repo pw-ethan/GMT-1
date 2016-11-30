@@ -120,10 +120,10 @@ bool DBUtility::updateDB(const string & tb_name, const int & index, const string
 
 void DBUtility::endSQL(const bool & ret){
     if(!ret){
-        cout << "ROLLBACK" << endl;
+        cout << "[Info] transaction result -- ROLLBACK" << endl;
         mysql_query(connection, "ROLLBACK");
     }else{
-        cout << "COMMIT" << endl;
+        cout << "[Info] transaction result -- COMMIT" << endl;
         mysql_query(connection, "COMMIT");
     }
     cout << "[Info] DBUtility::endSQL() -- end transaction" << endl;

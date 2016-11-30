@@ -15,6 +15,7 @@
  ******************************************************************/
 
 #include "common.h"
+#include "config.h"
 //#include "Base64.h"
 
 /**
@@ -48,6 +49,11 @@ ZZ *gen_weights(const int num)
         result[i] = to_ZZ(i+2);
     }
     return result;
+}
+
+ZZ genRandomValue(){
+    int r = rand() % WEIGHT_BOUNDARY + 1;
+    return to_ZZ(r);
 }
 /*
 string toBytes(void* src, int len){

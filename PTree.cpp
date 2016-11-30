@@ -228,6 +228,69 @@ bool PTree::addValue(const ZZ & value){
     return _return;
 }
 
+bool PTree::queryValue(const uint16_t & index, DSAuth & ds){
+    bool _return = true;
+    if(index > numElems){
+        cout << "[Error] PTree::queryValue() -- illegal parameter. " << endl;
+        return false;
+    }
+
+    uint16_t offset = index;
+    uint16_t numOfCorner = this->depth - 2;
+
+    bool LeftOrRight[numOfCorner];
+    for(uint16_t i = 0; i < numOfCorner; i++){
+        offset /= 2;
+        if(offset % 2 == 1){
+            LeftOrRight[numOfCorner - i - 1] = true;
+        }else{
+            LeftOrRight[numOfCorner - i - 1] = false;
+        }
+    }
+
+    Node * pointOfValues = this->rootValues;
+    for(uint16_t i = 0; i < numOfCorner; i++){
+        if(LeftOrRight[i]){
+            pointOfValues = pointOfValues->getRightChild();
+        }else{
+            pointOfValues = pointOfValues->getLeftChild();
+        }
+    }
+    
+    this->db->startSQL();
+    string strWeights[numOfCorner];
+    for(uint16_t i = 0; i < numOfCorner; i++){
+        Node * brother = NULL;
+        if(LeftOrRight[numOfCorner - i]){
+            brother = pointOfValues->getParent()->getLeftChild();
+        }else{
+            brother = pointOfValues->getParent()->getRightChild();
+        }
+        strWeights[i] = this->db->queryDB("values_p", brother->getID());
+        if(strWeights[i].empty()){
+            cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            _return = false;
+            break;
+        }
+        pointOfValues = pointOfValues->getParent();
+    }
+    string strQueryValue = this->db->queryDB("leaves", index);
+    string strBrotherValue = this->db->queryDB("leaves", (index % 2==0) ? (index + 1) : (index - 1));
+    if(strQueryValue.empty() || strBrotherValue.empty()){
+        cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        _return = false;
+    }
+    this->db->endSQL(_return);
+    if(_return){
+        ds.setNum(numOfCorner);
+        ds.setSiblingPath(strWeights);
+        ds.setQueryData(strQueryValue);
+        ds.setBrotherData(strBrotherValue);
+    }
+
+    return _return;
+}
+
 void PTree::printPTree(){
     cout << "[Info] the weights tree structure is as follows..." << endl;
     printTree(this->rootWeights);
@@ -273,6 +336,11 @@ void PTree::printTree(Node * root){
     }
     cout << endl;
     vector<Node *>().swap(vec);
+}
+
+bool PTree::isFull(){
+    if(getNumElems() == getMaxElems()) return true;
+    return false;
 }
 
 uint16_t PTree::getMaxElems(){

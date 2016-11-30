@@ -29,7 +29,7 @@ Node::Node(const uint16_t & id){
 }
 
 Node::~Node(){
-    cout << "~Node()" << endl;
+    //cout << "~Node()" << endl;
 }
 
 uint16_t Node::getID(){

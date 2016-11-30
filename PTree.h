@@ -22,6 +22,7 @@
 #include "Node.h"
 #include "CryptoUtility.h"
 #include "DBUtility.h"
+#include "DSAuth.h"
 
 class PTree
 {
@@ -33,8 +34,11 @@ public:
     bool updatePTree(const string * strWeights, const uint16_t & numAdd2Weights);
     /* add value */
     bool addValue(const ZZ & value);
+    /* query value */
+    bool queryValue(const uint16_t & index, DSAuth & ds);
     /* Traversing the weights tree by level */
     void printPTree();
+    bool isFull();
     uint16_t getMaxElems();
     uint16_t getNumElems();
     uint16_t getDepth();
