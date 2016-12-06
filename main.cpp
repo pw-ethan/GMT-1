@@ -5,12 +5,10 @@
 #include "common.h"
 #include "memory_dump.h"
 #include "config.h"
-#include "PWLog.h"
 
 #define DEBUG_C
 
 #ifdef DEBUG_JSON
-#include "PWLog.h"
 #include "DSAuth.h"
 #endif
 
