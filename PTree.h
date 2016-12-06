@@ -35,7 +35,7 @@ public:
     /* add value */
     bool addValue(const ZZ & value);
     /* query value */
-    bool queryValue(const uint16_t & index, DSAuth & ds);
+    string queryValue(const uint16_t & index);
     /* Traversing the weights tree by level */
     void printPTree();
     bool isFull();

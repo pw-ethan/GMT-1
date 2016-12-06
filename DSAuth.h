@@ -16,29 +16,22 @@
 #ifndef DSAUTH_H
 #define DSAUTH_H
 
-#include <string>
-#include <stdint.h>
-
-using namespace std;
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <sstream>
 
 class DSAuth{
 public:
     DSAuth();
     virtual ~DSAuth();
-    void setNum(uint16_t num);
-    uint16_t getNum() const;
-    void setQueryData(const string & data);
-    const string &getQueryData() const;
-    void setBrotherData(const string & data);
-    const string &getBrotherData() const;
-    void setSiblingPath(string * data);
-    string * getSiblingPath() const;
+    void putSomething(std::string k, std::string v);
+    std::string getSomething(std::string k);
+    std::string toString();
+    void fromString(std::string s);
+
 
 private:
-    uint16_t num;
-    string queryData;
-    string brothreData;
-    string *siblingPath;
+    boost::property_tree::ptree pt;
 };
 
 

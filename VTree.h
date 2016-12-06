@@ -41,7 +41,7 @@ public:
     /* Traversing the weights tree by level */
     void printVTree();
     /* Verify query result using DSAuth */
-    bool verify(const uint16_t index, const DSAuth & ds);
+    bool verify(const uint16_t index, const string & result);
 
     ZZ getEvidence();
     

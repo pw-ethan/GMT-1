@@ -5,8 +5,14 @@
 #include "common.h"
 #include "memory_dump.h"
 #include "config.h"
+#include "PWLog.h"
 
 #define DEBUG_C
+
+#ifdef DEBUG_JSON
+#include "PWLog.h"
+#include "DSAuth.h"
+#endif
 
 #ifdef DEBUG_C
 #include "CryptoUtility.h"
@@ -44,9 +50,34 @@ int main()
     clock_t startTime, endTime;
     startTime = clock();
 //===============================================
+#ifdef DEBUG_JSON
+
+    DSAuth ds1;
+    string k1 = "k1";
+    string v1 = "v1";
+    string k2 = "k2";
+    string v2 = "v2";
+
+    ds1.putSomething(k1, v1);
+    ds1.putSomething(k2, v2);
+
+    string json = ds1.toString();
+
+    LOGI("%s", "hello");
+
+    DSAuth ds2;
+    ds2.fromString(json);
+    
+    cout << ds2.getSomething(k1) << endl;
+    cout << ds2.getSomething(k2) << endl;
+
+
+#endif
+
 #ifdef DEBUG_C
 
     srand((unsigned)(time(NULL)));
+
     // Initialization - Verifier's Tree
     VTree *vt = new VTree();
 
@@ -54,7 +85,7 @@ int main()
     PTree *pt = new PTree();
 
     // 10 times insertion and some times random query
-    for(uint16_t i = 0; i < 10; i++){
+    for(uint16_t i = 0; i < 4; i++){
         // Check whether it is full, if so, update
         if(vt->isFull()){
             // Generate weights(ZZ type)
@@ -74,11 +105,13 @@ int main()
         cout << "[Info] Add value_" << i << " : " << value << endl;
         vt->addValue(value);
         pt->addValue(value);
+
         // random query
-        if(value % 2 == 0){
-            DSAuth ds;
-            pt->queryValue(i - 1, ds);
-            cout << "query data : " << vt->Bytes2ZZ(ds.getQueryData()) << endl;
+        if(i == 3){
+            string result = pt->queryValue(i);
+
+            bool res = vt->verify(i, result);
+            cout << "verify result : " << (res==true ? "Y" : "N") << endl;
         }
 
 

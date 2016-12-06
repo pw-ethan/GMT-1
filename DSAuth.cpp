@@ -16,41 +16,28 @@
 
 #include "DSAuth.h"
 
-DSAuth::DSAuth(): num(0), siblingPath(0){
-
-}
+DSAuth::DSAuth(){}
 
 DSAuth::~DSAuth(){}
 
-void DSAuth::setNum(uint16_t num){
-    this->num = num;
+void DSAuth::putSomething(std::string k, std::string v){
+    pt.put(k, v);
 }
 
-uint16_t DSAuth::getNum() const {
-    return this->num;
+std::string DSAuth::getSomething(std::string k){
+    std::string _return = pt.get<std::string>(k);
+    return _return;
 }
 
-void DSAuth::setQueryData(const string & data){
-    this->queryData = data;
+std::string DSAuth::toString(){
+    std::ostringstream os;
+    boost::property_tree::write_json(os, pt, false);
+    std::string _return = os.str();
+    return _return;
 }
 
-const string & DSAuth::getQueryData() const{
-    return this->queryData;
+void DSAuth::fromString(std::string s){
+    std::istringstream is(s);
+    boost::property_tree::read_json(is, pt);
 }
 
-void DSAuth::setBrotherData(const string & data){
-    this->brothreData = data;
-}
-
-const string & DSAuth::getBrotherData() const{
-    return this->brothreData;
-}
-
-
-void DSAuth::setSiblingPath(string * path){
-    this->siblingPath = path;
-}
-
-string * DSAuth::getSiblingPath() const {
-    return this->siblingPath;
-}

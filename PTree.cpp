@@ -228,11 +228,10 @@ bool PTree::addValue(const ZZ & value){
     return _return;
 }
 
-bool PTree::queryValue(const uint16_t & index, DSAuth & ds){
-    bool _return = true;
+string PTree::queryValue(const uint16_t & index){
     if(index > numElems){
-        cout << "[Error] PTree::queryValue() -- illegal parameter. " << endl;
-        return false;
+        cerr << "[Error] PTree::queryValue() -- illegal parameter. " << endl;
+        return "";
     }
 
     uint16_t offset = index;
@@ -256,7 +255,8 @@ bool PTree::queryValue(const uint16_t & index, DSAuth & ds){
             pointOfValues = pointOfValues->getLeftChild();
         }
     }
-    
+
+    bool _res = true;
     this->db->startSQL();
     string strWeights[numOfCorner];
     for(uint16_t i = 0; i < numOfCorner; i++){
@@ -269,7 +269,7 @@ bool PTree::queryValue(const uint16_t & index, DSAuth & ds){
         strWeights[i] = this->db->queryDB("values_p", brother->getID());
         if(strWeights[i].empty()){
             cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
-            _return = false;
+            _res = false;
             break;
         }
         pointOfValues = pointOfValues->getParent();
@@ -278,17 +278,21 @@ bool PTree::queryValue(const uint16_t & index, DSAuth & ds){
     string strBrotherValue = this->db->queryDB("leaves", (index % 2==0) ? (index + 1) : (index - 1));
     if(strQueryValue.empty() || strBrotherValue.empty()){
         cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
-        _return = false;
+        _res = false;
     }
-    this->db->endSQL(_return);
-    if(_return){
-        ds.setNum(numOfCorner);
-        ds.setSiblingPath(strWeights);
-        ds.setQueryData(strQueryValue);
-        ds.setBrotherData(strBrotherValue);
+    this->db->endSQL(_res);
+    if(_res){
+        DSAuth ds;
+        ds.putSomething("num", to_string(numOfCorner));
+        ds.putSomething("query-value", strQueryValue);
+        ds.putSomething("brother-value", strBrotherValue);
+        for(uint16_t i = 0; i < numOfCorner; i++){
+            ds.putSomething("sibling-path-" + to_string(i), strWeights[i]);
+        }
+        return ds.toString();
     }
 
-    return _return;
+    return "";
 }
 
 void PTree::printPTree(){

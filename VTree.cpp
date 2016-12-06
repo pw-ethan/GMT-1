@@ -183,8 +183,116 @@ void VTree::printVTree(){
     vector<Node *>().swap(vec);
 }
 
-bool VTree::verify(const uint16_t index, const DSAuth & ds){
+bool VTree::verify(const uint16_t index, const string & result){
+    bool _return = true;
+
+    uint16_t offset = index;
+    uint16_t numOfCorner = this->depth - 1;
+    bool LeftOrRight[numOfCorner];
+    for(uint16_t i = 0; i < numOfCorner; i++){
+        if(offset % 2 == 1){
+            LeftOrRight[numOfCorner - i - 1] = true;
+        }else{
+            LeftOrRight[numOfCorner - i - 1] = false;
+        }
+        offset /= 2;
+    }
+    Node * pointOfWeights = this->root;
+    for(uint16_t i = 0; i < numOfCorner; i++){
+        if(LeftOrRight[i]){
+            pointOfWeights = pointOfWeights->getRightChild();
+        }else{
+            pointOfWeights = pointOfWeights->getLeftChild();
+        }
+    }
+
+    DSAuth ds;
+    ds.fromString(result);
+
+    cout << "query value-" << index << " is " << Bytes2ZZ(ds.getSomething("query-value")) << endl;
+    //string * siblingPath = ds.getSiblingPath();
+    ZZX master = to_ZZX(Bytes2ZZ(ds.getSomething("query-value")));
+    ZZX slave = to_ZZX(Bytes2ZZ(ds.getSomething("brother-value")));
+    ZZX master_weight;
+    ZZX slave_weight;
+
+    offset = index;
+
+    this->db->startSQL();
     
+    string str_mw = this->db->queryDB("weights", pointOfWeights->getID());
+    if(str_mw.empty()){
+        cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        _return = false;
+    }
+    master_weight = Bytes2ZZ(str_mw);
+
+    string str_sw;
+    if(offset % 2 == 1){
+        str_sw = this->db->queryDB("weights", pointOfWeights->getParent()->getLeftChild()->getID());
+    }else{
+        str_sw = this->db->queryDB("weights", pointOfWeights->getParent()->getRightChild()->getID());
+    }
+    if(str_sw.empty()){
+        cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        _return = false;
+    }
+    slave_weight = Bytes2ZZ(str_sw);
+
+    master = master * master_weight + slave * slave_weight;
+    
+    pointOfWeights = pointOfWeights->getParent();
+    offset /= 2;
+
+    uint16_t num = stoi(ds.getSomething("num"));
+    for(uint16_t i = 0; i < num; i++){
+        Ctxt * ctmp = this->cy->Bytes2Ctxt(ds.getSomething("sibling-path-" + to_string(i)));
+        //cout << "sibling-path-" + to_string(i) << *ctmp << endl;
+        slave = *(this->cy->decrypt(*ctmp));
+        //cout << "slave" << slave << endl;
+        string str_mwt = this->db->queryDB("weights", pointOfWeights->getID());
+        if(str_mwt.empty()){
+            cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            _return = false;
+            break;
+        }
+        master_weight = Bytes2ZZ(str_mwt);
+        
+        string str_swt;
+        if(offset % 2 == 1){
+            str_swt = this->db->queryDB("weights", pointOfWeights->getParent()->getLeftChild()->getID());
+        }else{
+            str_swt = this->db->queryDB("weights", pointOfWeights->getParent()->getRightChild()->getID());
+        }
+        if(str_swt.empty()){
+            cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            _return = false;
+            break;
+        }
+        slave_weight = Bytes2ZZ(str_swt);
+
+        master = master * master_weight + slave * slave_weight;
+
+        pointOfWeights = pointOfWeights->getParent();
+
+        offset /= 2;
+        //cout << "master:" << master[0] << endl;
+    }
+
+    string top = this->db->queryDB("weights", this->root->getID());
+    if(top.empty()){
+        cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        _return = false;
+    }
+    master *= Bytes2ZZ(top);
+    //cout << "master-:" << master[0] << endl;
+
+    db->endSQL(_return);
+
+    if(_return && (master[0] % 1013) == evidence % 1013){
+        return true;
+    }
+    return false;
 }
 
 
@@ -215,7 +323,7 @@ ZZ * VTree::genWeights(const int num){
     */
     ZZ *_return = new ZZ[num];
     for(int i = 0; i < num; i++){
-        _return[i] = to_ZZ(i+2);
+        _return[i] = to_ZZ(i+num);
     }
     return _return;
 }
