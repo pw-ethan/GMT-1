@@ -5,7 +5,9 @@
 #include "common.h"
 #include "memory_dump.h"
 #include "config.h"
+#include "CryptoUtility.h"
 
+//#define DEBUG_INIT
 #define DEBUG_C
 
 #ifdef DEBUG_JSON
@@ -48,6 +50,14 @@ int main()
     clock_t startTime, endTime;
     startTime = clock();
 //===============================================
+#ifdef DEBUG_INIT
+    CryptoUtility *cy = new CryptoUtility();
+    cy->initFHE();
+
+
+    delete cy;
+#endif
+
 #ifdef DEBUG_JSON
 
     DSAuth ds1;
@@ -82,8 +92,8 @@ int main()
     // Initialization - Prover's Tree
     PTree *pt = new PTree();
 
-    // 10 times insertion and some times random query
-    for(uint16_t i = 0; i < 10; i++){
+    // 16 times insertion and some times random query
+    for(uint16_t i = 0; i < 16; i++){
         // Check whether it is full, if so, update
         if(vt->isFull()){
             // Generate weights(ZZ type)
