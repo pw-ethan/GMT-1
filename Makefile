@@ -1,5 +1,5 @@
 CC := g++
-COMPILE_FLAGS := -I/. -I/usr/local/include/boost_1_62_0 -g -Wall -fexceptions
+COMPILE_FLAGS := -I/. -I/usr/local/include/boost_1_62_0 -g -Wall -fexceptions -DDEBUG_ERROR #-DCOMPLETE_INFO
 LIBS := ./libs/fhe/fhe.a -lntl -lgmp -lmysqlclient -lmd -lboost_system -lboost_thread
 LINK_FLAGS := -L/. -L/usr/local/lib/boost_1_62_0
 

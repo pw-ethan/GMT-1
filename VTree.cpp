@@ -51,10 +51,12 @@ VTree::~VTree(){
 }
 
 bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
-    cout << endl << "[Info] update VTree" << endl;
+    cout << "[Info] update VTree" << endl;
 
     if(numAdd2Weights != power_two(this->depth)){
-        cerr << "[Error] VTree::updateVTree() -- number of adding to Weights is NOT OK!" << endl;
+        //cerr << "[Error] VTree::updateVTree() -- number of adding to Weights is NOT OK!" << endl;
+        LOGERROR("[Error] VTree::updateVTree() -- number of adding to Weights is NOT OK!");
+        return false;
     }
 
     this->maxElems *= 2;
@@ -87,7 +89,8 @@ bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
     this->root->setParent(node);
     this->root = node;
     if(numAdd2Weights == 1){
-        cout << "[Info] VTree::updateVTree() -- numAdd2Weights is 1" << endl;
+        //cout << "[Info] VTree::updateVTree() -- numAdd2Weights is 1" << endl;
+        LOGINFO("[Info] VTree::updateVTree() -- numAdd2Weights is 1");
         this->maxElems = 1;
         this->root->setLeftChild(NULL);
         return true;
@@ -138,7 +141,8 @@ bool VTree::addValue(const ZZ & value){
 
         string result = this->db->queryDB("weights", point->getID());
         if(result.empty()){
-            cerr << "[Error] VTree::addValue() -- Getting ZZ from DB is NOT OK" << endl;
+            //cerr << "[Error] VTree::addValue() -- Getting ZZ from DB is NOT OK" << endl;
+            LOGERROR("[Error] VTree::addValue() -- Getting ZZ from DB is NOT OK!");
             _return = false;
             break;
         }
@@ -146,7 +150,8 @@ bool VTree::addValue(const ZZ & value){
     }
     string result = this->db->queryDB("weights", this->root->getID());
     if(result.empty()){
-        cerr << "[Info] VTree::addValue() -- Geting ZZ from DB is NOT OK" << endl;
+        //cerr << "[Info] VTree::addValue() -- Geting ZZ from DB is NOT OK" << endl;
+        LOGERROR("[Error] VTree::addValue() -- Getting ZZ from DB is NOT OK!");
         _return = false;
     }
     valueAdd2Evidence *= Bytes2ZZ(result);
@@ -209,7 +214,7 @@ bool VTree::verify(const uint16_t index, const string & result){
     DSAuth ds;
     ds.fromString(result);
 
-    cout << "query value-" << index << " is " << Bytes2ZZ(ds.getSomething("query-value")) << endl;
+    cout << "[Info] query value-" << index << " : " << Bytes2ZZ(ds.getSomething("query-value")) << endl;
     //string * siblingPath = ds.getSiblingPath();
     ZZX master = to_ZZX(Bytes2ZZ(ds.getSomething("query-value")));
     ZZX slave = to_ZZX(Bytes2ZZ(ds.getSomething("brother-value")));
@@ -222,7 +227,8 @@ bool VTree::verify(const uint16_t index, const string & result){
 
     string str_mw = this->db->queryDB("weights", pointOfWeights->getID());
     if(str_mw.empty()){
-        cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        LOGERROR("[Error] VTree::queryValue() -- Getting value from DB is NOT OK!");
         _return = false;
     }
     master_weight = Bytes2ZZ(str_mw);
@@ -236,7 +242,8 @@ bool VTree::verify(const uint16_t index, const string & result){
         str_sw = this->db->queryDB("weights", pointOfWeights->getParent()->getRightChild()->getID());
     }
     if(str_sw.empty()){
-        cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        LOGERROR("[Error] VTree::queryValue() -- Getting value from DB is NOT OK!");
         _return = false;
     }
     slave_weight = Bytes2ZZ(str_sw);
@@ -259,7 +266,8 @@ bool VTree::verify(const uint16_t index, const string & result){
 
         string str_mwt = this->db->queryDB("weights", pointOfWeights->getID());
         if(str_mwt.empty()){
-            cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            LOGERROR("[Error] VTree::queryValue() -- Getting value from DB is NOT OK!");
             _return = false;
             break;
         }
@@ -274,7 +282,8 @@ bool VTree::verify(const uint16_t index, const string & result){
             str_swt = this->db->queryDB("weights", pointOfWeights->getParent()->getRightChild()->getID());
         }
         if(str_swt.empty()){
-            cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            LOGERROR("[Error] VTree::queryValue() -- Getting value from DB is NOT OK!");
             _return = false;
             break;
         }
@@ -294,7 +303,8 @@ bool VTree::verify(const uint16_t index, const string & result){
 
     string top = this->db->queryDB("weights", this->root->getID());
     if(top.empty()){
-        cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        LOGERROR("[Error] VTree::queryValue() -- Getting value from DB is NOT OK!");
         _return = false;
     }
 

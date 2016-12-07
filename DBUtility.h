@@ -14,7 +14,8 @@
  *  说明:.
  ******************************************************************/
 
-#pragma once
+#ifndef DBUTILITY_H
+#define DBUTILITY_H
 
 #include <iostream>
 #include <string>
@@ -41,3 +42,5 @@ class DBUtility
     public:
         void deleteDB(const string & tb_name);
 };
+
+#endif

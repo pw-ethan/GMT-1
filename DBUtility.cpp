@@ -17,20 +17,22 @@
 #include <sstream>
 #include "DBUtility.h"
 #include "config.h"
+#include "common.h"
 
 DBUtility::DBUtility(){
     connection = mysql_init(NULL);
     if(connection == NULL){
-        cerr << "[Error] DBUtility::DBUtility() -- mysql_init() is NOT OK!" << endl;
-    }
+        //cerr << "[Error] DBUtility::DBUtility() -- mysql_init() is NOT OK!" << endl;
+        LOGERROR("[Error] DBUtility::DBUtility() -- mysql_init() is NOT OK!");
+   }
 }
 
 DBUtility::~DBUtility(){
     if(connection != NULL){
         mysql_close(connection);
     }
-    cout << "[Info] DBUtility::~DBUtility()" << endl;
-    cout << endl;
+    //cout << "[Info] DBUtility::~DBUtility()" << endl;
+    LOGINFO("[Info] DBUtility::~DBUtility()");
 }
 
 bool DBUtility::initDB(const string & host, const string & user, const string & pwd, const string & db_name){
@@ -71,14 +73,16 @@ void DBUtility::startSQL(){
     mysql_query(connection, "SET AUTOCOMMIT=0"); // MYSQL will autocommit by default.
     mysql_query(connection, "SET NAMES 'utf8'");
     mysql_query(connection, "START TRANSACTION");
-    cout << "[Info] DBUtility::startSQL() -- start transaction" << endl;
+    //cout << "[Info] DBUtility::startSQL() -- start transaction" << endl;
+    LOGINFO("[Info] DBUtility::startSQL() -- start transaction");
 }
 
 string DBUtility::queryDB(const string & tb_name, const int & index){
     stringstream ss;
     ss << "select weight from " << tb_name <<" where id=" << index;
     string strsql = ss.str();
-    cout << "[Info] " << strsql << endl;
+    //cout << "[Info] " << strsql << endl;
+    LOGINFO("[Info] " + strsql);
     if(mysql_real_query(connection, strsql.c_str(), strsql.length())){
         cerr << "[Error] DBUtility::queryDB() -- mysql_real_query() is NOT OK!" << endl;
         return NULL;
@@ -99,6 +103,7 @@ bool DBUtility::insertDB(const string & tb_name, const int & index, const string
     ss << "insert into " << tb_name << " values(" << index <<", '" << content << "')";
     string strsql = ss.str();
     //cout << "[Info] " << strsql << endl;
+    //LOGINFO("[Info] " + strsql);
     int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
     if(ret){
         return false;
@@ -111,6 +116,7 @@ bool DBUtility::updateDB(const string & tb_name, const int & index, const string
     ss << "update " << tb_name << " set weight='" << content << "' where id=" << index;
     string strsql = ss.str();
     //cout << "[Info] " << strsql << endl;
+    //LOGINFO("[Info] " + strsql);
     int ret = mysql_real_query(connection, strsql.c_str(), strsql.length());
     if(ret){
         return false;
@@ -120,21 +126,24 @@ bool DBUtility::updateDB(const string & tb_name, const int & index, const string
 
 void DBUtility::endSQL(const bool & ret){
     if(!ret){
-        cout << "[Info] transaction result -- ROLLBACK" << endl;
+        //cout << "[Info] transaction result -- ROLLBACK" << endl;
+        LOGINFO("[Info] transaction result -- ROOLBACK");
         mysql_query(connection, "ROLLBACK");
     }else{
-        cout << "[Info] transaction result -- COMMIT" << endl;
+        //cout << "[Info] transaction result -- COMMIT" << endl;
+        LOGINFO("[Info] transaction result -- COMMIT");
         mysql_query(connection, "COMMIT");
     }
-    cout << "[Info] DBUtility::endSQL() -- end transaction" << endl;
-    cout << endl;
+    //cout << "[Info] DBUtility::endSQL() -- end transaction" << endl;
+    LOGINFO("[Info] DBUtility::endSQL() -- end transaction");
 }
 
 void DBUtility::deleteDB(const string & tb_name){
     stringstream ss;
     ss << "delete from " << tb_name;
     string strsql = ss.str();
-    cout << "[Info] " << strsql << endl;
+    //cout << "[Info] " << strsql << endl;
+    LOGINFO("[Info] " + strsql);
     startSQL();
     int ret = mysql_query(connection, strsql.c_str());
     if(ret){

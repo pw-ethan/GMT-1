@@ -13,7 +13,8 @@
  *  作者:.
  *  说明:.
  ******************************************************************/
-#pragma once
+#ifndef PTREE_H
+#define PTREE_H
 
 #include <string>
 #include <stdint.h>
@@ -62,3 +63,4 @@ private:
     ZZ Bytes2ZZ(const string & x);
 };
 
+#endif

@@ -83,33 +83,36 @@ int main()
     PTree *pt = new PTree();
 
     // 10 times insertion and some times random query
-    for(uint16_t i = 0; i < 5; i++){
+    for(uint16_t i = 0; i < 10; i++){
         // Check whether it is full, if so, update
         if(vt->isFull()){
             // Generate weights(ZZ type)
             uint16_t numAdd2Weights = vt->getNumAdd2Weights();
             ZZ * weights = vt->genWeights(numAdd2Weights);
+
             // Update Verifier
             vt->updateVTree(weights, numAdd2Weights);
-            vt->printVTree();
+            //vt->printVTree();
+
             // Encrypt weights and publish
             string strWeights[numAdd2Weights];
             vt->weights2Str(weights, strWeights, numAdd2Weights);
+
             // Update Prover
             pt->updatePTree(strWeights, numAdd2Weights);
         }
         // Insert value to Verifier and Prover
         ZZ value = genRandomValue();
-        cout << "[Info] Add value_" << i << " : " << value << endl;
+        cout << "[Info] add value-" << i << " : " << value << endl;
         vt->addValue(value);
         pt->addValue(value);
 
         // random query
-        if(i > 2){
+        if(i > 2 && isItTime()){
             string result = pt->queryValue(i - 1);
 
             bool res = vt->verify(i - 1, result);
-            cout << "verify result : " << (res==true ? "Y" : "N") << endl;
+            cout << "[Info] verify result : " << (res==true ? "Y" : "N") << endl;
         }
     }
 

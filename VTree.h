@@ -13,7 +13,8 @@
  *  作者:.
  *  说明:.
  ******************************************************************/
-#pragma once
+#ifndef VTREE_H
+#define VTREE_H
 
 #include <NTL/ZZ.h>
 #include <stdint.h>
@@ -80,3 +81,5 @@ public:
     string ZZ2Bytes(const ZZ & x);
     ZZ Bytes2ZZ(const string & x);
 };
+
+#endif

@@ -14,7 +14,8 @@
  *  说明:.
  ******************************************************************/
 
-#pragma once
+#ifndef CRYPTOUTILITY_H
+#define CRYPTOUTILITY_H
 
 #include "./libs/fhe/FHE.h"
 
@@ -45,3 +46,5 @@ private:
     FHEPubKey *pubkey;
     FHESecKey *seckey;
 };
+
+#endif

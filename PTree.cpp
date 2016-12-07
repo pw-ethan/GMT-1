@@ -57,7 +57,9 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
     cout << "[Info] updata PTree" << endl;
     
     if(numAdd2Weights != power_two(this->depth)){
-        cerr << "[Error] PTree::updatePTree() -- number of adding to Weights is NOT OK" << endl;
+        //cerr << "[Error] PTree::updatePTree() -- number of adding to Weights is NOT OK" << endl;
+        LOGERROR("[Error] PTree::updatePTree() -- number of adding to Weights is NOT OK!");
+        return false;
     }
 
     this->maxElems *= 2;
@@ -86,7 +88,8 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
     this->rootWeights->setParent(node);
     this->rootWeights = node;
     if(numAdd2Weights == 1){
-        cout << "[Info] PTree::updatePTree() -- numAdd2Weights is 1" << endl;
+        //cout << "[Info] PTree::updatePTree() -- numAdd2Weights is 1" << endl;
+        LOGINFO("[Info] PTree::updatePTree() -- numAdd2Weights is 1");
         this->maxElems = 1;
         this->rootWeights->setLeftChild(NULL);
         return true;
@@ -200,14 +203,16 @@ bool PTree::addValue(const ZZ & value){
     for(uint16_t i = 0; i < numOfCorner; i++){
         string strw = this->db->queryDB("weights_p", pointOfWeights->getID());
         if(strw.empty()){
-            cerr << "[Error] PTree::addValue() -- Geting weights from DB is NOT OK" << endl;
+            //cerr << "[Error] PTree::addValue() -- Geting weights from DB is NOT OK" << endl;
+            LOGERROR("[Error] PTree::addValue() -- Getting weights from DB is NOT OK!");
             _return = false;
             break;
         }
         *valueAdd2Layer *= *(this->cy->Bytes2Ctxt(strw));
         string strv = this->db->queryDB("values_p", pointOfValues->getID());
         if(strv.empty()){
-            cerr << "[Error] PTree::addValue() -- Geting values from DB is NOT OK" << endl;
+            //cerr << "[Error] PTree::addValue() -- Geting values from DB is NOT OK" << endl;
+            LOGERROR("[Error] PTree::addValue() -- Getting values from DB is NOT OK!");
             _return = false;
             break;
         }
@@ -230,7 +235,8 @@ bool PTree::addValue(const ZZ & value){
 
 string PTree::queryValue(const uint16_t & index){
     if(index > numElems){
-        cerr << "[Error] PTree::queryValue() -- illegal parameter. " << endl;
+        //cerr << "[Error] PTree::queryValue() -- illegal parameter. " << endl;
+        LOGERROR("[Error] PTree::queryValue() -- illegal parameter.");
         return "";
     }
 
@@ -268,7 +274,8 @@ string PTree::queryValue(const uint16_t & index){
         }
         strWeights[i] = this->db->queryDB("values_p", brother->getID());
         if(strWeights[i].empty()){
-            cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            //cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+            LOGERROR("[Error] PTree::queryValue() -- Getting value from DB is NOT OK!");
             _res = false;
             break;
         }
@@ -277,7 +284,8 @@ string PTree::queryValue(const uint16_t & index){
     string strQueryValue = this->db->queryDB("leaves", index);
     string strBrotherValue = this->db->queryDB("leaves", (index % 2==0) ? (index + 1) : (index - 1));
     if(strQueryValue.empty() || strBrotherValue.empty()){
-        cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        //cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
+        LOGERROR("[Error] PTree::queryValue() -- Getting value from DB is NOT OK!");
         _res = false;
     }
     this->db->endSQL(_res);

@@ -14,7 +14,8 @@
  *  说明: 
  ******************************************************************/
 
-#pragma once
+#ifndef COMMON_H
+#define COMMON_H
 
 #include <stdint.h>
 #include <NTL/ZZ.h>
@@ -32,9 +33,17 @@ uint16_t power_two(uint16_t n);
 ZZ genRandomValue();
 
 bool isItTime();
-//string toBytes(void* src, int len);
 
-//double getDouble(const string &x);
+#ifdef COMPLETE_INFO
+#define LOGINFO(line) do{cout << line << endl;} while(0)
+#else
+#define LOGINFO(line) do{} while(0)
+#endif
 
-//Ctxt* getCtxt(const string &x);
+#ifdef DEBUG_ERROR
+#define LOGERROR(line) do{cerr << line << endl;} while(0)
+#else
+#define LOGERROR(line) do{} while(0)
+#endif
 
+#endif

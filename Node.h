@@ -13,7 +13,8 @@
  *  作者:.
  *  说明:.
  ******************************************************************/
-#pragma once
+#ifndef NODE_H
+#define NODE_H
 
 #include <stdint.h>
 
@@ -40,3 +41,4 @@ private:
     Node * rightChild;
 };
 
+#endif
