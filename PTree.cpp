@@ -261,7 +261,7 @@ string PTree::queryValue(const uint16_t & index){
     string strWeights[numOfCorner];
     for(uint16_t i = 0; i < numOfCorner; i++){
         Node * brother = NULL;
-        if(LeftOrRight[numOfCorner - i]){
+        if(LeftOrRight[numOfCorner - i - 1]){
             brother = pointOfValues->getParent()->getLeftChild();
         }else{
             brother = pointOfValues->getParent()->getRightChild();

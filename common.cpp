@@ -26,34 +26,13 @@ uint16_t power_two(uint16_t n)
     return 1<<n;
 }
 
-ZZ *gen_weights(const int num)
-{
-/*
-    srand((unsigned)time(NULL));
-    int *result = (int *)calloc(num, sizeof(int));
-    if(!result){
-        return NULL;
-    }
-    for(int i = 0; i < num; i++){
-        result[i] = rand() % WEIGHT_BOUNDARY + 1;
-    }
-*/
-    /*
-    ZZ *result = new ZZ[num];
-    SetSeed(to_ZZ(time(NULL)));
-    for(int i = 0; i < num; i++){
-        RandomLen(result[i], 16);
-    }*/
-    ZZ * result = new ZZ[num];
-    for(int i = 0; i < num; i++){
-        result[i] = to_ZZ(i+2);
-    }
-    return result;
-}
-
 ZZ genRandomValue(){
     int r = rand() % WEIGHT_BOUNDARY + 1;
     return to_ZZ(r);
+}
+
+bool isItTime(){
+    return ((rand() % 2 == 0) ? true : false);
 }
 /*
 string toBytes(void* src, int len){

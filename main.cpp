@@ -83,7 +83,7 @@ int main()
     PTree *pt = new PTree();
 
     // 10 times insertion and some times random query
-    for(uint16_t i = 0; i < 4; i++){
+    for(uint16_t i = 0; i < 5; i++){
         // Check whether it is full, if so, update
         if(vt->isFull()){
             // Generate weights(ZZ type)
@@ -105,14 +105,12 @@ int main()
         pt->addValue(value);
 
         // random query
-        if(i == 3){
-            string result = pt->queryValue(i);
+        if(i > 2){
+            string result = pt->queryValue(i - 1);
 
-            bool res = vt->verify(i, result);
+            bool res = vt->verify(i - 1, result);
             cout << "verify result : " << (res==true ? "Y" : "N") << endl;
         }
-
-
     }
 
 

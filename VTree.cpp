@@ -219,13 +219,15 @@ bool VTree::verify(const uint16_t index, const string & result){
     offset = index;
 
     this->db->startSQL();
-    
+
     string str_mw = this->db->queryDB("weights", pointOfWeights->getID());
     if(str_mw.empty()){
         cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
         _return = false;
     }
     master_weight = Bytes2ZZ(str_mw);
+
+    //cout << endl << endl << "master_weight-" << master_weight << endl;
 
     string str_sw;
     if(offset % 2 == 1){
@@ -239,17 +241,22 @@ bool VTree::verify(const uint16_t index, const string & result){
     }
     slave_weight = Bytes2ZZ(str_sw);
 
+    //cout << "slave_weight-" << slave_weight << endl;
+
     master = master * master_weight + slave * slave_weight;
-    
+
+    //cout << "master-" << master << endl;
+
     pointOfWeights = pointOfWeights->getParent();
     offset /= 2;
 
     uint16_t num = stoi(ds.getSomething("num"));
     for(uint16_t i = 0; i < num; i++){
         Ctxt * ctmp = this->cy->Bytes2Ctxt(ds.getSomething("sibling-path-" + to_string(i)));
-        //cout << "sibling-path-" + to_string(i) << *ctmp << endl;
         slave = *(this->cy->decrypt(*ctmp));
-        //cout << "slave" << slave << endl;
+
+        //cout << "slave-" << slave << endl;
+
         string str_mwt = this->db->queryDB("weights", pointOfWeights->getID());
         if(str_mwt.empty()){
             cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
@@ -257,7 +264,9 @@ bool VTree::verify(const uint16_t index, const string & result){
             break;
         }
         master_weight = Bytes2ZZ(str_mwt);
-        
+
+        //cout << "master_weight-" << master_weight << endl;
+
         string str_swt;
         if(offset % 2 == 1){
             str_swt = this->db->queryDB("weights", pointOfWeights->getParent()->getLeftChild()->getID());
@@ -271,12 +280,16 @@ bool VTree::verify(const uint16_t index, const string & result){
         }
         slave_weight = Bytes2ZZ(str_swt);
 
+        //cout << "slave_weight-" << slave_weight << endl;
+
         master = master * master_weight + slave * slave_weight;
 
         pointOfWeights = pointOfWeights->getParent();
 
         offset /= 2;
-        //cout << "master:" << master[0] << endl;
+
+        //cout << "master-" << master << endl;
+
     }
 
     string top = this->db->queryDB("weights", this->root->getID());
@@ -284,8 +297,12 @@ bool VTree::verify(const uint16_t index, const string & result){
         cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
         _return = false;
     }
+
+    //cout << "top-" << Bytes2ZZ(top) << endl;
+
     master *= Bytes2ZZ(top);
-    //cout << "master-:" << master[0] << endl;
+
+    //cout << "master-" << master << endl << endl;
 
     db->endSQL(_return);
 
@@ -314,17 +331,17 @@ uint16_t VTree::getNumAdd2Weights(){
 }
 
 ZZ * VTree::genWeights(const int num){
-    /*
+    
     ZZ *_return = new ZZ[num];
     SetSeed(to_ZZ(time(NULL)));
     for(int i = 0; i < num; i++){
         RandomLen(_return[i], 16);
     }
-    */
+    /*
     ZZ *_return = new ZZ[num];
     for(int i = 0; i < num; i++){
         _return[i] = to_ZZ(i+num);
-    }
+    }*/
     return _return;
 }
 
