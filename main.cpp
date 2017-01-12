@@ -49,6 +49,7 @@ int main()
         en_weights[i].~Ctxt();
     }
     operator delete[] (en_weights);
+
     
     // 随机生成数据，将数据发送给 verifier
     int num = power_two(TREE_LEVELS - 1);//leaves of the tree
