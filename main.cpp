@@ -1,6 +1,6 @@
 #include <iostream>
 #include <NTL/ZZ.h>
-
+#include <time.h>
 
 #include "crypto_fhe_utility.h"
 #include "v_tree.h"
@@ -50,26 +50,51 @@ int main()
     }
     operator delete[] (en_weights);
 
-    
+
+    clock_t time_point_one, time_point_two;
+    //time_point_one = clock();
+    int time_takes = 0;
+    int time_native = 0;
+
     // 随机生成数据，将数据发送给 verifier
-    int num = power_two(TREE_LEVELS - 1);//leaves of the tree
+    int num = 4;//power_two(TREE_LEVELS - 1);//leaves of the tree
+
+    cin >> num;
 
     srand((unsigned)time(NULL));
     for(int i = 0; i<num;i++){
         int value = rand()%WEIGHT_BOUNDARY + 1;
         cout << "append "<< i  << "th value " << value << " to verifier & prover tree." << endl;
+
+        time_point_one = clock();
         vt->vt_add(to_ZZ(value));
+        time_point_two = clock();
+        time_takes += time_point_two - time_point_one;
+        time_native += time_point_two - time_point_one;
+
         cout << endl;
 
         Ctxt ct_value(*publicKey);
         publicKey->Encrypt(ct_value, to_ZZX(value));
+
+        time_point_one = clock();
         pt->pt_add(ct_value);
+        time_point_two = clock();
+        time_takes += time_point_two - time_point_one;
+        
         cout << endl;
     }
-    cout << "verifier tree :" << endl;
-    vt->vt_print();
+    //time_point_two = clock();
+    //time_takes += time_point_two - time_point_one;
+    double sumTime = (double)(time_takes) / CLOCKS_PER_SEC;
+    cout << "Total time : " << sumTime << " secs." << endl;
+    cout << "Average time : " << sumTime / num << " secs." << endl;
+    cout << "Native time : " << (double)(time_native) / CLOCKS_PER_SEC / num * 2 << " secs." << endl;
 
+    //cout << "verifier tree :" << endl;
+    //vt->vt_print();
 
+/*
     int index = 0;
     int choice = 1;
     while (choice) {
@@ -99,8 +124,8 @@ int main()
         cout << "\ncontinue(1) or break(0):" << endl;
         cin >> choice;
     }
+*/
 
-    
     // 释放内存
     publicKey = NULL;
     secretKey = NULL;
