@@ -8,7 +8,7 @@
 #include "CryptoUtility.h"
 
 //#define DEBUG_INIT
-#define DEBUG_C
+#define DEBUG_CRYPTO
 
 #ifdef DEBUG_JSON
 #include "DSAuth.h"
@@ -24,6 +24,7 @@
 #ifdef DEBUG_CRYPTO
 #include "CryptoUtility.h"
 #include "DBUtility.h"
+#include "VTree.h"
 #endif
 
 #ifdef DEBUG_PTREE
@@ -165,31 +166,33 @@ int main()
 
 #ifdef DEBUG_CRYPTO
 
+    VTree *vt = new VTree();
+
     CryptoUtility * cy = new CryptoUtility();
     cy->initFHE();
 
-    DBUtility * db = new DBUtility();
-    db->initDB("localhost", "root", "1234", "gmt_1_p");
+    clock_t timePointA, timePointB;
+    //timePointA = clock();
 
-    ZZ a = to_ZZ("2");
-    ZZ b = to_ZZ("3");
+    int timeTakes = 0;
 
-    Ctxt * cta = cy->encrypt(a);
-    Ctxt * ctb = cy->encrypt(b);
+    ZZ tmp = to_ZZ("123");
+    Ctxt * ctmp = cy->encrypt(tmp);
 
-    string stra = cy->Ctxt2Bytes(*cta);
-    string strb = cy->Ctxt2Bytes(*ctb);
-
-    bool _res = true;
-    db->startSQL();
-    _res = db->insertDB("weights_p", 0, stra);
-    
-    db->insertDB("weights_p", 1, strb);
-
-    db->endSQL(_res);
-
-    //db->deleteDB("weights_p");
-    delete db;
+    ZZ * datas = vt->genWeights(32);
+    for(int i = 0; i < 7; i++){
+        //cout << datas[i] << endl;
+        Ctxt * ca = cy->encrypt(datas[i]);
+        timePointA = clock();
+        *ctmp *= *ca;
+        timePointB = clock();
+        timeTakes += timePointB - timePointA;
+        //ZZX * pa = cy->decrypt(*ca);
+        //cout << *pa << endl;
+    }
+    cout << "+ time : " << (double) timeTakes / CLOCKS_PER_SEC / 7 << " secs." << endl;
+    //timePointB = clock();
+    //cout << "en & de takes - " << (double)(timePointB - timePointA) / CLOCKS_PER_SEC / 32 << " secs." << endl;
 /*
     CryptoUtility * cyp = new CryptoUtility();
     cyp->initFHEByProver();
@@ -216,6 +219,7 @@ int main()
     delete cyv;
 */
     delete cy;
+    delete vt;
 
 #endif
 
