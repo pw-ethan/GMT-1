@@ -92,8 +92,16 @@ int main()
     // Initialization - Prover's Tree
     PTree *pt = new PTree();
 
+    clock_t time_point_one, time_point_two;
+    int time_takes = 0;
+    int time_native = 0;
+
+    uint16_t numA = 4;
+
+    cin >> numA;
+
     // 16 times insertion and some times random query
-    for(uint16_t i = 0; i < 16; i++){
+    for(uint16_t i = 0; i < numA; i++){
         // Check whether it is full, if so, update
         if(vt->isFull()){
             // Generate weights(ZZ type)
@@ -110,20 +118,35 @@ int main()
 
             // Update Prover
             pt->updatePTree(strWeights, numAdd2Weights);
+            if(i > 1){
+                cout << endl;
+                cout << "data num : " << vt->getNumElems() << endl;
+                double sumtime = (double) time_takes / CLOCKS_PER_SEC;
+                cout << "Total time : " << sumtime << " secs." << endl;
+                cout << "Average time : " << sumtime / vt->getNumElems() << " secs." << endl;
+                cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / numA << endl << endl;
+            }
+
         }
         // Insert value to Verifier and Prover
         ZZ value = genRandomValue();
         cout << "[Info] add value-" << i << " : " << value << endl;
-        vt->addValue(value);
-        pt->addValue(value);
 
+        time_point_one = clock();
+        vt->addValue(value);
+        time_point_two = clock();
+        time_native += time_point_two - time_point_one;
+
+        pt->addValue(value);
+        time_point_two = clock();
+        time_takes += time_point_two - time_point_one;
         // random query
-        if(i > 2 && isItTime()){
+        /*if(i > 2 && isItTime()){
             string result = pt->queryValue(i - 1);
 
             bool res = vt->verify(i - 1, result);
             cout << "[Info] verify result : " << (res==true ? "Y" : "N") << endl;
-        }
+        }*/
     }
 
 
