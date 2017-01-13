@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 
-#define TREE_LEVELS             8        /* The number of levels in the tree */
+#define TREE_LEVELS             7        /* The number of levels in the tree */
 #define WEIGHT_BOUNDARY         1013         /* The boundary of edge weight  */
 
 #define HOST "localhost"

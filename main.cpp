@@ -118,14 +118,6 @@ int main()
 
             // Update Prover
             pt->updatePTree(strWeights, numAdd2Weights);
-            if(i > 1){
-                cout << endl;
-                cout << "data num : " << vt->getNumElems() << endl;
-                double sumtime = (double) time_takes / CLOCKS_PER_SEC;
-                cout << "Total time : " << sumtime << " secs." << endl;
-                cout << "Average time : " << sumtime / vt->getNumElems() << " secs." << endl;
-                cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / numA << endl << endl;
-            }
 
         }
         // Insert value to Verifier and Prover
@@ -140,6 +132,15 @@ int main()
         pt->addValue(value);
         time_point_two = clock();
         time_takes += time_point_two - time_point_one;
+
+        if(vt->getNumElems() == vt->getMaxElems()){
+            cout << endl;
+            cout << "data num : " << vt->getNumElems() << endl;
+            double sumtime = (double) time_takes / CLOCKS_PER_SEC;
+            cout << "Total time : " << sumtime << " secs." << endl;
+            cout << "Average time : " << sumtime / vt->getNumElems() << " secs." << endl;
+            cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / numA << endl << endl;
+        }
         // random query
         /*if(i > 2 && isItTime()){
             string result = pt->queryValue(i - 1);
