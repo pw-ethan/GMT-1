@@ -21,7 +21,7 @@
 
 #include "VTree.h"
 #include "common.h"
-#include "Base64.h"
+//#include "Base64.h"
 #include "config.h"
 
 #include "memory_dump.h"
@@ -36,17 +36,17 @@ VTree::VTree(){
     this->maxElems = 0;
     clear(this->evidence);
     this->numElems = 0;
-    this->root = new Node(0);
-    this->db = new DBUtility();
-    this->db->initDB(VHOST, VUSER, VPWD, VDB_NAME);
+    this->root = new ZZNode(to_ZZ(0));
+    //this->db = new DBUtility();
+    //this->db->initDB(VHOST, VUSER, VPWD, VDB_NAME);
     this->cy = new CryptoUtility();
     this->cy->initFHEByVerifier();
 }
 
 VTree::~VTree(){
     delete this->cy;
-    this->db->deleteDB("weights");
-    delete this->db;
+    //this->db->deleteDB("weights");
+    //delete this->db;
     deleteTree(this->root);
 }
 
@@ -61,7 +61,7 @@ bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
 
     this->maxElems *= 2;
     this->depth += 1;
-
+/*
     this->db->startSQL();
     bool _return = true;
     uint16_t ids[numAdd2Weights];
@@ -79,12 +79,12 @@ bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
         this->depth -= 1;
         return false;
     }
-
+*/
     // update evidence
     this->evidence *= weights[0];
 
     // update root
-    Node * node = new Node(ids[0]);
+    ZZNode * node = new ZZNode(weights[0]);
     node->setLeftChild(this->root);
     this->root->setParent(node);
     this->root = node;
@@ -97,13 +97,13 @@ bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
     }
 
     // update right child tree
-    node = new Node(ids[1]);
+    node = new ZZNode(weights[1]);
     this->root->setRightChild(node);
     node->setParent(this->root);
 
     for(uint16_t i = 2; i < numAdd2Weights; i++){
-        Node * position = getPosition(node);
-        Node * tmp = new Node(ids[i]);
+        ZZNode * position = getPosition(node);
+        ZZNode * tmp = new ZZNode(weights[i]);
         if(i % 2 == 1){
             position->setRightChild(tmp);
         }else{
@@ -111,7 +111,7 @@ bool VTree::updateVTree(const ZZ * weights, const uint16_t & numAdd2Weights){
         }
         tmp->setParent(position);
     }
-    return _return;
+    return true;
 }
 
 bool VTree::addValue(const ZZ & value){
@@ -130,15 +130,16 @@ bool VTree::addValue(const ZZ & value){
     }
 
     ZZ valueAdd2Evidence = value;
-    Node * point = this->root;
-    this->db->startSQL();
+    ZZNode * point = this->root;
+//    this->db->startSQL();
     for(uint16_t i = 0; i < numOfCorner; i++){
         if(LeftOrRight[i]){
             point = point->getRightChild();
         }else{
             point = point->getLeftChild();
         }
-
+        valueAdd2Evidence *= point->getWeight();
+/*
         string result = this->db->queryDB("weights", point->getID());
         if(result.empty()){
             //cerr << "[Error] VTree::addValue() -- Getting ZZ from DB is NOT OK" << endl;
@@ -147,15 +148,18 @@ bool VTree::addValue(const ZZ & value){
             break;
         }
         valueAdd2Evidence *= Bytes2ZZ(result);
+*/
     }
-    string result = this->db->queryDB("weights", this->root->getID());
+    valueAdd2Evidence *= this->root->getWeight();
+    /*string result = this->db->queryDB("weights", this->root->getID());
     if(result.empty()){
         //cerr << "[Info] VTree::addValue() -- Geting ZZ from DB is NOT OK" << endl;
         LOGERROR("[Error] VTree::addValue() -- Getting ZZ from DB is NOT OK!");
         _return = false;
     }
     valueAdd2Evidence *= Bytes2ZZ(result);
-    this->db->endSQL(_return);
+    */
+    //this->db->endSQL(_return);
     if(_return){
         this->evidence += valueAdd2Evidence;
         this->numElems += 1;
@@ -164,7 +168,7 @@ bool VTree::addValue(const ZZ & value){
 }
 
 void VTree::printVTree(){
-    vector<Node *> vec;
+    vector<ZZNode *> vec;
     vec.push_back(this->root);
     uint16_t cur = 0;
     uint16_t last = 1;
@@ -172,7 +176,7 @@ void VTree::printVTree(){
     while(cur < vec.size()){
         last = vec.size();
         while(cur < last){
-            cout << vec[cur]->getID() << " ";
+            cout << vec[cur]->getWeight() << " ";
             if(vec[cur]->getLeftChild()){
                 vec.push_back(vec[cur]->getLeftChild());
             }
@@ -185,10 +189,10 @@ void VTree::printVTree(){
     }
 
     cout << endl;
-    vector<Node *>().swap(vec);
+    vector<ZZNode *>().swap(vec);
 }
 
-bool VTree::verify(const uint16_t index, const string & result){
+bool VTree::verify(const uint16_t index, Auth * auth){
     bool _return = true;
 
     uint16_t offset = index;
@@ -202,7 +206,8 @@ bool VTree::verify(const uint16_t index, const string & result){
         }
         offset /= 2;
     }
-    Node * pointOfWeights = this->root;
+
+    ZZNode * pointOfWeights = this->root;
     for(uint16_t i = 0; i < numOfCorner; i++){
         if(LeftOrRight[i]){
             pointOfWeights = pointOfWeights->getRightChild();
@@ -210,31 +215,38 @@ bool VTree::verify(const uint16_t index, const string & result){
             pointOfWeights = pointOfWeights->getLeftChild();
         }
     }
-
+/*
     DSAuth ds;
     ds.fromString(result);
 
     cout << "[Info] query value-" << index << " : " << Bytes2ZZ(ds.getSomething("query-value")) << endl;
-    //string * siblingPath = ds.getSiblingPath();
-    ZZX master = to_ZZX(Bytes2ZZ(ds.getSomething("query-value")));
-    ZZX slave = to_ZZX(Bytes2ZZ(ds.getSomething("brother-value")));
+*/
+    //ZZX master = to_ZZX(Bytes2ZZ(ds.getSomething("query-value")));
+    //ZZX slave = to_ZZX(Bytes2ZZ(ds.getSomething("brother-value")));
+    cout << "[Info] query value-" << index << " : " << auth->getQueryValue();
+    ZZX master = to_ZZX(auth->getQueryValue());
+    ZZX slave = to_ZZX(auth->getBrotherValue());
     ZZX master_weight;
     ZZX slave_weight;
 
     offset = index;
 
-    this->db->startSQL();
+    //this->db->startSQL();
 
+    /*
     string str_mw = this->db->queryDB("weights", pointOfWeights->getID());
     if(str_mw.empty()){
         //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
         LOGERROR("[Error] VTree::queryValue() -- Getting value from DB is NOT OK!");
         _return = false;
     }
-    master_weight = Bytes2ZZ(str_mw);
+    master_weight = Bytes2ZZ(str_mw);*/
+
+    master_weight = to_ZZX(pointOfWeights->getWeight());
 
     //cout << endl << endl << "master_weight-" << master_weight << endl;
 
+    /*
     string str_sw;
     if(offset % 2 == 1){
         str_sw = this->db->queryDB("weights", pointOfWeights->getParent()->getLeftChild()->getID());
@@ -246,7 +258,13 @@ bool VTree::verify(const uint16_t index, const string & result){
         LOGERROR("[Error] VTree::queryValue() -- Getting value from DB is NOT OK!");
         _return = false;
     }
-    slave_weight = Bytes2ZZ(str_sw);
+    slave_weight = Bytes2ZZ(str_sw);*/
+
+    if(offset % 2 == 1){
+        slave_weight = to_ZZX(pointOfWeights->getParent()->getLeftChild()->getWeight());
+    }else{
+        slave_weight = to_ZZX(pointOfWeights->getParent()->getRightChild()->getWeight());
+    }
 
     //cout << "slave_weight-" << slave_weight << endl;
 
@@ -257,13 +275,17 @@ bool VTree::verify(const uint16_t index, const string & result){
     pointOfWeights = pointOfWeights->getParent();
     offset /= 2;
 
-    uint16_t num = stoi(ds.getSomething("num"));
+    //uint16_t num = stoi(ds.getSomething("num"));
+    uint16_t num = auth->getNum();
+    CtxtSiblingPathNode * siblingPath = auth->getSiblingPath();
     for(uint16_t i = 0; i < num; i++){
-        Ctxt * ctmp = this->cy->Bytes2Ctxt(ds.getSomething("sibling-path-" + to_string(i)));
-        slave = *(this->cy->decrypt(*ctmp));
+        //Ctxt * ctmp = this->cy->Bytes2Ctxt(ds.getSomething("sibling-path-" + to_string(i)));
+        siblingPath = siblingPath->getNext();        
+        slave = *(this->cy->decrypt(*(siblingPath->getWeight())));
 
         //cout << "slave-" << slave << endl;
 
+        /*
         string str_mwt = this->db->queryDB("weights", pointOfWeights->getID());
         if(str_mwt.empty()){
             //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
@@ -271,10 +293,13 @@ bool VTree::verify(const uint16_t index, const string & result){
             _return = false;
             break;
         }
-        master_weight = Bytes2ZZ(str_mwt);
+        master_weight = Bytes2ZZ(str_mwt);*/
+
+        master_weight = to_ZZX(pointOfWeights->getWeight());
 
         //cout << "master_weight-" << master_weight << endl;
 
+        /*
         string str_swt;
         if(offset % 2 == 1){
             str_swt = this->db->queryDB("weights", pointOfWeights->getParent()->getLeftChild()->getID());
@@ -287,7 +312,13 @@ bool VTree::verify(const uint16_t index, const string & result){
             _return = false;
             break;
         }
-        slave_weight = Bytes2ZZ(str_swt);
+        slave_weight = Bytes2ZZ(str_swt);*/
+
+        if(offset % 2 == 1){
+            slave_weight = to_ZZX(pointOfWeights->getParent()->getLeftChild()->getWeight());
+        }else{
+            slave_weight = to_ZZX(pointOfWeights->getParent()->getRightChild()->getWeight());
+        }
 
         //cout << "slave_weight-" << slave_weight << endl;
 
@@ -300,7 +331,7 @@ bool VTree::verify(const uint16_t index, const string & result){
         //cout << "master-" << master << endl;
 
     }
-
+    /*
     string top = this->db->queryDB("weights", this->root->getID());
     if(top.empty()){
         //cerr << "[Error] VTree::queryValue() -- Getting value from DB is NOT OK" << endl;
@@ -310,11 +341,13 @@ bool VTree::verify(const uint16_t index, const string & result){
 
     //cout << "top-" << Bytes2ZZ(top) << endl;
 
-    master *= Bytes2ZZ(top);
+    master *= Bytes2ZZ(top);*/
+
+    master *= to_ZZX(this->root->getWeight());
 
     //cout << "master-" << master << endl << endl;
 
-    db->endSQL(_return);
+    //db->endSQL(_return);
 
     if(_return && (master[0] % 1013) == evidence % 1013){
         return true;
@@ -341,17 +374,17 @@ uint16_t VTree::getNumAdd2Weights(){
 }
 
 ZZ * VTree::genWeights(const int num){
-    
+    /*
     ZZ *_return = new ZZ[num];
     SetSeed(to_ZZ(time(NULL)));
     for(int i = 0; i < num; i++){
         RandomLen(_return[i], 16);
-    }
-    /*
+    }*/
+    
     ZZ *_return = new ZZ[num];
     for(int i = 0; i < num; i++){
         _return[i] = to_ZZ(i+num);
-    }*/
+    }
     return _return;
 }
 
@@ -359,6 +392,19 @@ void VTree::weights2Str(const ZZ * weights, string * strWeights, uint16_t numAdd
     for(uint16_t i = 0; i < numAdd2Weights; i++){
         strWeights[i] = this->cy->Ctxt2Bytes(*(this->cy->encrypt(weights[i])));
     }
+}
+
+CtxtSiblingPathNode * VTree::genCtxtWeights(const ZZ * weights, uint16_t numAdd2Weights){
+    CtxtSiblingPathNode * _return = new CtxtSiblingPathNode(cy->getPubKey());
+    CtxtSiblingPathNode *pp = _return;
+    for(uint16_t i = 0; i < numAdd2Weights; i++){
+        CtxtSiblingPathNode * tmp = new CtxtSiblingPathNode(cy->getPubKey());
+        tmp->setWeight(cy->encrypt(weights[i]));
+        pp->setNext(tmp);
+        pp = tmp;
+    }
+
+    return _return;
 }
 
 uint16_t VTree::getDepth(){
@@ -385,7 +431,7 @@ Node * VTree::getRoot(){
     return this->root;
 }*/
 
-void VTree::deleteTree(Node *root){
+void VTree::deleteTree(ZZNode *root){
     if(root == NULL){
         return;
     }else{
@@ -395,11 +441,11 @@ void VTree::deleteTree(Node *root){
     }
 }
 
-Node * VTree::getPosition(Node * root){
-    queue<Node *> q;
+ZZNode * VTree::getPosition(ZZNode * root){
+    queue<ZZNode *> q;
     q.push(root);
     do{
-        Node * node = q.front();
+        ZZNode * node = q.front();
         if(node->getLeftChild() == NULL || node->getRightChild() == NULL){
             return node;
         }else{
@@ -423,15 +469,17 @@ void VTree::PreOrderBiTree(Node * root){
 }*/
 
 string VTree::ZZ2Bytes(const ZZ & x){
-    unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
+    /*unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
     BytesFromZZ(pstr, x, sizeof(ZZ));
     string _return = base64_encode(pstr, sizeof(ZZ));
-    return _return;
+    return _return;*/
+    return "";
 }
 
 ZZ VTree::Bytes2ZZ(const string & x){
-    string y = base64_decode(x);
+    /*string y = base64_decode(x);
     ZZ _return = ZZFromBytes((const unsigned char *)(y.c_str()), sizeof(ZZ));
-    return _return;
+    return _return;*/
+    return ZZ(0);
 }
 

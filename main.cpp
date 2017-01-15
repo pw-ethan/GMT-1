@@ -8,17 +8,21 @@
 #include "CryptoUtility.h"
 
 //#define DEBUG_INIT
-#define DEBUG_CRYPTO
+//#define DEBUG_CRYPTO
+#define DEBUG_C
+#include "CtxtNode.h"
+#include "ZZNode.h"
 
 #ifdef DEBUG_JSON
 #include "DSAuth.h"
 #endif
 
 #ifdef DEBUG_C
-#include "CryptoUtility.h"
 #include "VTree.h"
 #include "PTree.h"
-#include "DSAuth.h"
+#include "Auth.h"
+#include "CtxtSiblingPathNode.h"
+//#include "DSAuth.h"
 #endif
 
 #ifdef DEBUG_CRYPTO
@@ -51,37 +55,6 @@ int main()
     clock_t startTime, endTime;
     startTime = clock();
 //===============================================
-#ifdef DEBUG_INIT
-    CryptoUtility *cy = new CryptoUtility();
-    cy->initFHE();
-
-
-    delete cy;
-#endif
-
-#ifdef DEBUG_JSON
-
-    DSAuth ds1;
-    string k1 = "k1";
-    string v1 = "v1";
-    string k2 = "k2";
-    string v2 = "v2";
-
-    ds1.putSomething(k1, v1);
-    ds1.putSomething(k2, v2);
-
-    string json = ds1.toString();
-
-    LOGI("%s", "hello");
-
-    DSAuth ds2;
-    ds2.fromString(json);
-    
-    cout << ds2.getSomething(k1) << endl;
-    cout << ds2.getSomething(k2) << endl;
-
-
-#endif
 
 #ifdef DEBUG_C
 
@@ -92,14 +65,13 @@ int main()
 
     // Initialization - Prover's Tree
     PTree *pt = new PTree();
-
     clock_t time_point_one, time_point_two;
     int time_takes = 0;
     int time_native = 0;
 
     uint16_t numA = 4;
 
-    cin >> numA;
+    //cin >> numA;
 
     // 16 times insertion and some times random query
     for(uint16_t i = 0; i < numA; i++){
@@ -114,11 +86,12 @@ int main()
             //vt->printVTree();
 
             // Encrypt weights and publish
-            string strWeights[numAdd2Weights];
-            vt->weights2Str(weights, strWeights, numAdd2Weights);
-
+            //string strWeights[numAdd2Weights];
+            //vt->weights2Str(weights, strWeights, numAdd2Weights);
+            CtxtSiblingPathNode* pweights = vt->genCtxtWeights(weights, numAdd2Weights);
+            cout << *(vt->cy->decrypt(*(pweights->getNext()->getWeight())));
             // Update Prover
-            pt->updatePTree(strWeights, numAdd2Weights);
+            pt->updatePTree(pweights, numAdd2Weights);
             if(i > 1){
                 cout << endl;
                 cout << "data num : " << vt->getNumElems() << endl;
@@ -157,11 +130,117 @@ int main()
 
 #endif
 
-
 #ifdef DEBUG_SOCKET
+/*
+    VTree *vt = new VTree();
+    vt->printVTree();
+
+    cout << vt->getEvidence() << endl;
+
+    ZZ tmp = to_ZZ("2");
+
+    for(int i = 0; i < 4; i++){
+        if(vt->getNumElems() == vt->getMaxElems()){
+            uint16_t numAdd2Weights = vt->getNumAdd2Weights();
+            ZZ * weights = vt->genWeights(numAdd2Weights);
+            vt->updateVTree(weights, numAdd2Weights);
+            vt->printVTree();
+        }
+        cout << endl << "add " << i << "th value" << endl;
+        vt->addValue(tmp);
+        cout << "Evidence: " << vt->getEvidence() << endl;
+    }
+
+    delete vt;
+*/    
+    CryptoUtility * cy = new CryptoUtility();
+    cy->initFHEByVerifier();
+
+    ZZ tmp = to_ZZ("123");
+    Ctxt *ctmp = cy->encrypt(tmp);
+
+    ZZNode *znode = new ZZNode(tmp);
+    CtxtNode *node = new CtxtNode(cy->getPubKey(), ctmp);
+
+    ZZX *ptmp = cy->decrypt(*(node->getWeight()));
+    cout << *ptmp << endl;
+    cout << znode->getWeight() << endl;
+
+    delete znode;
+    delete node;
+
+#endif
+
+
+
+#ifdef DEBUG_PTREE
+
+    PTree * pt = new PTree();
+    pt->printPTree();
+    
+    CryptoUtility *cy = new CryptoUtility();
+    cy->initFHEByVerifier();
+
+    ZZ tmp = to_ZZ("2");
+
+    for(int i = 0; i < 4; i++){
+        if(pt->getNumElems() == pt->getMaxElems()){
+            uint16_t numAdd2Weights = power_two(pt->getDepth());
+            ZZ * weights = gen_weights(numAdd2Weights);
+            string strWeights[numAdd2Weights];
+            for(uint16_t i = 0; i < numAdd2Weights; i++){
+                strWeights[i] = cy->Ctxt2Bytes(*(cy->encrypt(weights[i])));
+            }
+            pt->updatePTree(strWeights, numAdd2Weights);
+            pt->printPTree();
+        }
+        cout << endl << "add " << i << "th value" << endl;
+        pt->addValue(tmp);
+    }
+
+    string strv = pt->test();
+    Ctxt * cv = cy->Bytes2Ctxt(strv);
+    ZZX * pv = cy->decrypt(*cv);
+    cout << *pv << endl;
+
+    delete cy;
+    delete pt;
+
+#endif
+
+
+#ifdef DEBUG_INIT
+    CryptoUtility *cy = new CryptoUtility();
+    cy->initFHE();
+
+
+    delete cy;
+#endif
+
+#ifdef DEBUG_JSON
+
+    DSAuth ds1;
+    string k1 = "k1";
+    string v1 = "v1";
+    string k2 = "k2";
+    string v2 = "v2";
+
+    ds1.putSomething(k1, v1);
+    ds1.putSomething(k2, v2);
+
+    string json = ds1.toString();
+
+    LOGI("%s", "hello");
+
+    DSAuth ds2;
+    ds2.fromString(json);
+    
+    cout << ds2.getSomething(k1) << endl;
+    cout << ds2.getSomething(k2) << endl;
 
 
 #endif
+
 
 
 #ifdef DEBUG_CRYPTO
@@ -220,42 +299,6 @@ int main()
 */
     delete cy;
     delete vt;
-
-#endif
-
-
-#ifdef DEBUG_PTREE
-
-    PTree * pt = new PTree();
-    pt->printPTree();
-    
-    CryptoUtility *cy = new CryptoUtility();
-    cy->initFHEByVerifier();
-
-    ZZ tmp = to_ZZ("2");
-
-    for(int i = 0; i < 4; i++){
-        if(pt->getNumElems() == pt->getMaxElems()){
-            uint16_t numAdd2Weights = power_two(pt->getDepth());
-            ZZ * weights = gen_weights(numAdd2Weights);
-            string strWeights[numAdd2Weights];
-            for(uint16_t i = 0; i < numAdd2Weights; i++){
-                strWeights[i] = cy->Ctxt2Bytes(*(cy->encrypt(weights[i])));
-            }
-            pt->updatePTree(strWeights, numAdd2Weights);
-            pt->printPTree();
-        }
-        cout << endl << "add " << i << "th value" << endl;
-        pt->addValue(tmp);
-    }
-
-    string strv = pt->test();
-    Ctxt * cv = cy->Bytes2Ctxt(strv);
-    ZZX * pv = cy->decrypt(*cv);
-    cout << *pv << endl;
-
-    delete cy;
-    delete pt;
 
 #endif
 

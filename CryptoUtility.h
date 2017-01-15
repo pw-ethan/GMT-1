@@ -38,9 +38,9 @@ public:
 
     /*
     FHEcontext * getContext();
-    FHESecKey *getSecKey();
+    FHESecKey *getSecKey();*/
     FHEPubKey *getPubKey();
-*/
+
 private:
     FHEcontext *context;
     FHEPubKey *pubkey;

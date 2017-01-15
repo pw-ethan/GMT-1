@@ -21,10 +21,12 @@
 #include <string>
 #include "./libs/fhe/FHE.h"
 
-#include "Node.h"
-#include "DBUtility.h"
+#include "ZZNode.h"
+//#include "DBUtility.h"
 #include "CryptoUtility.h"
-#include "DSAuth.h"
+//#include "DSAuth.h"
+#include "Auth.h"
+#include "CtxtSiblingPathNode.h"
 
 using namespace NTL;
 using namespace std;
@@ -42,7 +44,7 @@ public:
     /* Traversing the weights tree by level */
     void printVTree();
     /* Verify query result using DSAuth */
-    bool verify(const uint16_t index, const string & result);
+    bool verify(const uint16_t index, Auth * auth);
 
     ZZ getEvidence();
     
@@ -52,6 +54,8 @@ public:
     uint16_t getNumAdd2Weights();
     // generate weights(ZZ type)
     ZZ * genWeights(const int num);
+
+    CtxtSiblingPathNode * genCtxtWeights(const ZZ *weights, uint16_t numAdd2Weights);
     // encrypt weights and publish them
     void weights2Str(const ZZ * weigths, string * strWeights, uint16_t numAdd2Weights);
     //void setEvidence(const ZZ & value);
@@ -66,15 +70,16 @@ private:
     ZZ evidence;
     uint16_t depth;
     uint16_t numElems;
-    Node * root;            // the root of Verifier's weights tree
+    ZZNode * root;            // the root of Verifier's weights tree
     uint16_t maxElems;
-    DBUtility *db;
+    //DBUtility *db;
+public:
     CryptoUtility *cy;
 
 private:
-    void deleteTree(Node * root);
+    void deleteTree(ZZNode * root);
     /* Get the next insertable position in the weights tree of Verifier */
-    Node * getPosition(Node * root);
+    ZZNode * getPosition(ZZNode * root);
     /* Pre-order traversal binary tree */
     //void PreOrderBiTree(Node * root);
 public:

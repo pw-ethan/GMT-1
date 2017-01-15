@@ -21,7 +21,8 @@
 #include <queue>
 
 #include "common.h"
-#include "Base64.h"
+#include "CtxtSiblingPathNode.h"
+//#include "Base64.h"
 
 #define PHOST "localhost"
 #define PUSER "root"
@@ -35,27 +36,28 @@ PTree::PTree(){
     this->depth = 0;
     this->numElems = 0;
     this->maxElems = 0;
-    this->rootWeights = new Node(0);
-    this->rootValues = new Node(0);
-    this->db = new DBUtility();
-    this->db->initDB(PHOST, PUSER, PPWD, PDB_NAME);
+    //this->db = new DBUtility();
+    //this->db->initDB(PHOST, PUSER, PPWD, PDB_NAME);
     this->cy = new CryptoUtility();
-    this->cy->initFHEByProver();
+    //this->cy->initFHEByProver();
+    this->cy->initFHEByVerifier();
+    this->rootWeights = new CtxtNode(this->cy->getPubKey());
+    this->rootValues = new CtxtNode(this->cy->getPubKey());
 }
 
 PTree::~PTree(){
     delete this->cy;
-    this->db->deleteDB("weights_p");
-    this->db->deleteDB("values_p");
-    this->db->deleteDB("leaves");
-    delete this->db;
+    //this->db->deleteDB("weights_p");
+    //this->db->deleteDB("values_p");
+    //this->db->deleteDB("leaves");
+    //delete this->db;
     deleteTree(this->rootWeights);
     deleteTree(this->rootValues);
 }
 
-bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weights){
+bool PTree::updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2Weights){
     cout << "[Info] updata PTree" << endl;
-    
+
     if(numAdd2Weights != power_two(this->depth)){
         //cerr << "[Error] PTree::updatePTree() -- number of adding to Weights is NOT OK" << endl;
         LOGERROR("[Error] PTree::updatePTree() -- number of adding to Weights is NOT OK!");
@@ -65,6 +67,7 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
     this->maxElems *= 2;
     this->depth += 1;
 
+    /*
     this->db->startSQL();
     bool _return = true;
     uint16_t ids[numAdd2Weights];
@@ -80,29 +83,42 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
         this->maxElems /= 2;
         this->depth -= 1;
         return _return;
-    }
+    }*/
 
     // update weights tree
-    Node * node = new Node(ids[0]);
+    CtxtSiblingPathNode * pp = pweights->getNext();
+    CtxtNode * node = new CtxtNode(this->cy->getPubKey());
+    cout << "Tag 1" << endl;
+    node->setWeight(pp->getWeight());
+    cout << "Tag 2" << endl;
+    cout << *(this->cy->decrypt(*(pp->getWeight()))) << endl;
+    cout << "Tag 3" << endl;
+    //here
+
     node->setLeftChild(this->rootWeights);
     this->rootWeights->setParent(node);
     this->rootWeights = node;
     if(numAdd2Weights == 1){
-        //cout << "[Info] PTree::updatePTree() -- numAdd2Weights is 1" << endl;
-        LOGINFO("[Info] PTree::updatePTree() -- numAdd2Weights is 1");
+        cout << "[Info] PTree::updatePTree() -- numAdd2Weights is 1" << endl;
+        //LOGINFO("[Info] PTree::updatePTree() -- numAdd2Weights is 1");
         this->maxElems = 1;
         this->rootWeights->setLeftChild(NULL);
         return true;
     }
 
     // update right child tree
-    node = new Node(ids[1]);
+    pp = pp->getNext();
+    node = new CtxtNode(this->cy->getPubKey());
+    node->setWeight(pp->getWeight());
     this->rootWeights->setRightChild(node);
     node->setParent(this->rootWeights);
+    cout << "Tag.1" << endl;
 
     for(uint16_t i = 2; i < numAdd2Weights; i++){
-        Node * position = getPosition(node);
-        Node * tmp = new Node(ids[i]);
+        CtxtNode * position = getPosition(node);
+        pp = pp->getNext();
+        CtxtNode * tmp = new CtxtNode(this->cy->getPubKey());
+        tmp->setWeight(pp->getWeight());
         if(i % 2 == 1){
             position->setRightChild(tmp);
         }else{
@@ -110,11 +126,13 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
         }
         tmp->setParent(position);
     }
+    cout << "Tag.2" << endl;
 
     // update values tree
-    string strtmpv = this->cy->Ctxt2Bytes(*(this->cy->encrypt(to_ZZ("0"))));
+    //string strtmpv = this->cy->Ctxt2Bytes(*(this->cy->encrypt(to_ZZ("0"))));
+    //Ctxt * ctmpv = this->cy->encrypt(to_ZZ("0"));
     uint16_t numAdd2Values = numAdd2Weights / 2;
-    bool _res = true;
+    /*bool _res = true;
     this->db->startSQL();
     uint16_t idst[numAdd2Values];
     for(uint16_t i = 0; i < numAdd2Values; i++){
@@ -137,9 +155,24 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
     *topvalue *= *topweight;
     this->db->updateDB("values_p", numAdd2Values, this->cy->Ctxt2Bytes(*topvalue));
 
-    this->db->endSQL(_res);
+    this->db->endSQL(_res);*/
 
-    node = new Node(idst[0]);
+    Ctxt * topweight = this->rootWeights->getLeftChild()->getWeight();
+    cout << *(this->cy->decrypt(*topweight)) << endl;
+    Ctxt * topvalue = this->cy->encrypt(to_ZZ("0"));
+    if(numAdd2Values == 1){
+        *topvalue += *(this->cy->encrypt(leaves[0]));
+        *topvalue *= *topweight;
+    }else{
+        *topvalue += *(this->rootValues->getWeight());
+        *topvalue *= *topweight;
+    }
+    cout << "Tag.3" << endl;
+    //*topvalue *= *topweight;
+    cout << "Tag.4" << endl;
+
+    node = new CtxtNode(this->cy->getPubKey());
+    node->setWeight(topvalue);
     node->setLeftChild(this->rootValues);
     this->rootValues->setParent(node);
     this->rootValues = node;
@@ -149,13 +182,17 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
         return true;
     }
 
-    node = new Node(idst[1]);
+    Ctxt * ctmpv = this->cy->encrypt(to_ZZ("0"));
+    node = new CtxtNode(this->cy->getPubKey());
+    node->setWeight(ctmpv);
     this->rootValues->setRightChild(node);
     node->setParent(this->rootValues);
 
     for(uint16_t i =2; i < numAdd2Values; i++){
-        Node * position = getPosition(node);
-        Node * tmp = new Node(idst[i]);
+        CtxtNode * position = getPosition(node);
+        Ctxt * ctmpvv = this->cy->encrypt(to_ZZ("0"));
+        CtxtNode * tmp = new CtxtNode(this->cy->getPubKey());
+        tmp->setWeight(ctmpvv);
         if(i % 2 == 1){
             position->setRightChild(tmp);
         }else{
@@ -163,7 +200,7 @@ bool PTree::updatePTree(const string * strWeights, const uint16_t & numAdd2Weigh
         }
         tmp->setParent(position);
     }
-    return _return;
+    return true;
 }
 
 bool PTree::addValue(const ZZ & value){
@@ -182,8 +219,8 @@ bool PTree::addValue(const ZZ & value){
     }
 
     Ctxt * valueAdd2Layer = this->cy->encrypt(value);
-    Node * pointOfWeights = this->rootWeights;
-    Node * pointOfValues = this->rootValues;
+    CtxtNode * pointOfWeights = this->rootWeights;
+    CtxtNode * pointOfValues = this->rootValues;
     for(uint16_t i = 0; i < numOfCorner; i++){
         if(LeftOrRight[i]){
             pointOfWeights = pointOfWeights->getRightChild();
@@ -199,17 +236,18 @@ bool PTree::addValue(const ZZ & value){
         }
     }
 
-    this->db->startSQL();
+    //this->db->startSQL();
     for(uint16_t i = 0; i < numOfCorner; i++){
-        string strw = this->db->queryDB("weights_p", pointOfWeights->getID());
+        /*string strw = this->db->queryDB("weights_p", pointOfWeights->getID());
         if(strw.empty()){
             //cerr << "[Error] PTree::addValue() -- Geting weights from DB is NOT OK" << endl;
             LOGERROR("[Error] PTree::addValue() -- Getting weights from DB is NOT OK!");
             _return = false;
             break;
         }
-        *valueAdd2Layer *= *(this->cy->Bytes2Ctxt(strw));
-        string strv = this->db->queryDB("values_p", pointOfValues->getID());
+        *valueAdd2Layer *= *(this->cy->Bytes2Ctxt(strw));*/
+        *valueAdd2Layer *= *(pointOfWeights->getWeight());
+        /*string strv = this->db->queryDB("values_p", pointOfValues->getID());
         if(strv.empty()){
             //cerr << "[Error] PTree::addValue() -- Geting values from DB is NOT OK" << endl;
             LOGERROR("[Error] PTree::addValue() -- Getting values from DB is NOT OK!");
@@ -218,26 +256,28 @@ bool PTree::addValue(const ZZ & value){
         }
         Ctxt * updateValue = this->cy->Bytes2Ctxt(strv);
         *updateValue += *valueAdd2Layer;
-        this->db->updateDB("values_p", pointOfValues->getID(), this->cy->Ctxt2Bytes(*updateValue));
-        
+        this->db->updateDB("values_p", pointOfValues->getID(), this->cy->Ctxt2Bytes(*updateValue));*/
+        *(pointOfValues->getWeight()) += *valueAdd2Layer;
+
         pointOfWeights = pointOfWeights->getParent();
         pointOfValues = pointOfValues->getParent();
     }
     
-    this->db->insertDB("leaves", this->numElems, ZZ2Bytes(value));
+    //this->db->insertDB("leaves", this->numElems, ZZ2Bytes(value));
+    this->leaves.push_back(value);
 
-    this->db->endSQL(_return);
+    //this->db->endSQL(_return);
     if(_return){
         this->numElems += 1;
     }
     return _return;
 }
 
-string PTree::queryValue(const uint16_t & index){
+Auth * PTree::queryValue(const uint16_t & index){
     if(index > numElems){
         //cerr << "[Error] PTree::queryValue() -- illegal parameter. " << endl;
         LOGERROR("[Error] PTree::queryValue() -- illegal parameter.");
-        return "";
+        return NULL;
     }
 
     uint16_t offset = index;
@@ -253,7 +293,7 @@ string PTree::queryValue(const uint16_t & index){
         }
     }
 
-    Node * pointOfValues = this->rootValues;
+    CtxtNode * pointOfValues = this->rootValues;
     for(uint16_t i = 0; i < numOfCorner; i++){
         if(LeftOrRight[i]){
             pointOfValues = pointOfValues->getRightChild();
@@ -262,26 +302,33 @@ string PTree::queryValue(const uint16_t & index){
         }
     }
 
-    bool _res = true;
-    this->db->startSQL();
-    string strWeights[numOfCorner];
+    //bool _res = true;
+    //this->db->startSQL();
+    //string strWeights[numOfCorner];
+    CtxtSiblingPathNode *cspNode = new CtxtSiblingPathNode(NULL);
+    CtxtSiblingPathNode *pp = cspNode;
     for(uint16_t i = 0; i < numOfCorner; i++){
-        Node * brother = NULL;
+        CtxtNode * brother = NULL;
         if(LeftOrRight[numOfCorner - i - 1]){
             brother = pointOfValues->getParent()->getLeftChild();
         }else{
             brother = pointOfValues->getParent()->getRightChild();
         }
+        CtxtSiblingPathNode *cspnodetmp = new CtxtSiblingPathNode(this->cy->getPubKey());
+        cspnodetmp->setWeight(brother->getWeight());
+        pp->setNext(cspnodetmp);
+        pp = cspnodetmp;
+        /*
         strWeights[i] = this->db->queryDB("values_p", brother->getID());
         if(strWeights[i].empty()){
             //cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
             LOGERROR("[Error] PTree::queryValue() -- Getting value from DB is NOT OK!");
             _res = false;
             break;
-        }
+        }*/
         pointOfValues = pointOfValues->getParent();
     }
-    string strQueryValue = this->db->queryDB("leaves", index);
+    /*string strQueryValue = this->db->queryDB("leaves", index);
     string strBrotherValue = this->db->queryDB("leaves", (index % 2==0) ? (index + 1) : (index - 1));
     if(strQueryValue.empty() || strBrotherValue.empty()){
         //cerr << "[Error] PTree::queryValue() -- Getting value from DB is NOT OK" << endl;
@@ -298,23 +345,32 @@ string PTree::queryValue(const uint16_t & index){
             ds.putSomething("sibling-path-" + to_string(i), strWeights[i]);
         }
         return ds.toString();
-    }
+    }*/
+    Auth *auth = new Auth();
+    auth->setNum(numOfCorner);
+    auth->setQueryValue(this->leaves[index]);
+    auth->setBrotherValue(this->leaves[(index % 2 == 0) ? (index + 1) : (index - 1)]);
+    auth->setSiblingPath(cspNode);
 
-    return "";
+    return auth;
 }
 
 void PTree::printPTree(){
-    cout << "[Info] the weights tree structure is as follows..." << endl;
-    printTree(this->rootWeights);
-    cout << "[Info] the values tree structure is as follows..." << endl;
-    printTree(this->rootValues);
+    //cout << "[Info] the weights tree structure is as follows..." << endl;
+    //printTree(this->rootWeights);
+    //cout << "[Info] the values tree structure is as follows..." << endl;
+    //printTree(this->rootValues);
+    vector<ZZ>::iterator it;
+    for(it = leaves.begin(); it != leaves.end();it++){
+        cout << *it << endl;
+    }
 }
 
-Node * PTree::getPosition(Node * root){
-    queue<Node *> q;
+CtxtNode * PTree::getPosition(CtxtNode * root){
+    queue<CtxtNode *> q;
     q.push(root);
     do{
-        Node * node = q.front();
+        CtxtNode * node = q.front();
         if(node->getLeftChild() == NULL || node->getRightChild() == NULL){
             return node;
         }else{
@@ -325,6 +381,30 @@ Node * PTree::getPosition(Node * root){
     }while(!q.empty());
 
     return NULL;
+}
+
+/*
+void PTree::printTree(ZZNode * root){
+    vector<ZZNode *> vec;
+    vec.push_back(root);
+    uint16_t cur = 0;
+    uint16_t last = 0;
+    while(cur < vec.size()){
+        last = vec.size();
+        while(cur < last){
+            cout << vec[cur]->getWeight() << " ";
+            if(vec[cur]->getLeftChild()){
+                vec.push_back(vec[cur]->getLeftChild());
+            }
+            if(vec[cur]->getRightChild()){
+                vec.push_back(vec[cur]->getRightChild());
+            }
+            cur++;
+        }
+        cout << endl;
+    }
+    cout << endl;
+    vector<ZZNode *>().swap(vec);
 }
 
 void PTree::printTree(Node * root){
@@ -348,7 +428,7 @@ void PTree::printTree(Node * root){
     }
     cout << endl;
     vector<Node *>().swap(vec);
-}
+}*/
 
 bool PTree::isFull(){
     if(getNumElems() == getMaxElems()) return true;
@@ -367,7 +447,7 @@ uint16_t PTree::getDepth(){
     return this->depth;
 }
 
-void PTree::deleteTree(Node * root){
+void PTree::deleteTree(CtxtNode * root){
     if(root == NULL){
         return;
     }else{
@@ -378,16 +458,18 @@ void PTree::deleteTree(Node * root){
 }
 
 string PTree::ZZ2Bytes(const ZZ & x){
-    unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
+    /*unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
     BytesFromZZ(pstr, x, sizeof(ZZ));
     string _return = base64_encode(pstr, sizeof(ZZ));
-    return _return;
+    return _return;*/
+    return "";
 }
 
 ZZ PTree::Bytes2ZZ(const string & x){
-    string y = base64_decode(x);
+    /*string y = base64_decode(x);
     ZZ _return = ZZFromBytes((const unsigned char *)(y.c_str()), sizeof(ZZ));
-    return _return;
+    return _return;*/
+    return to_ZZ(0);
 }
 
 /*
@@ -412,9 +494,9 @@ Ctxt * PTree::Bytes2Ctxt(const string & x){
 
 
 string PTree::test(){
-    string strv = this->db->queryDB("values_p", this->rootValues->getID());
+    //string strv = this->db->queryDB("values_p", this->rootValues->getID());
     //Ctxt * cv = this->cy->Bytes2Ctxt(strv);
     //ZZX * pv = this->cy->decrypt(*cv);
     //cout << *pv << endl;
-    return strv;
+    return "";
 }

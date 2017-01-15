@@ -18,12 +18,14 @@
 
 #include <string>
 #include <stdint.h>
+#include <vector>
 #include "./libs/fhe/FHE.h"
 
-#include "Node.h"
+#include "CtxtNode.h"
 #include "CryptoUtility.h"
-#include "DBUtility.h"
-#include "DSAuth.h"
+//#include "DBUtility.h"
+//#include "DSAuth.h"
+#include "Auth.h"
 
 class PTree
 {
@@ -32,11 +34,11 @@ public:
     virtual ~PTree();
 
     /* update Prover's weights tree and values tree */
-    bool updatePTree(const string * strWeights, const uint16_t & numAdd2Weights);
+    bool updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2Weights);
     /* add value */
     bool addValue(const ZZ & value);
     /* query value */
-    string queryValue(const uint16_t & index);
+    Auth * queryValue(const uint16_t & index);
     /* Traversing the weights tree by level */
     void printPTree();
     bool isFull();
@@ -50,15 +52,16 @@ private:
     uint16_t depth;
     uint16_t numElems;
     uint16_t maxElems;
-    Node * rootWeights;
-    Node * rootValues;
-    DBUtility * db;
+    CtxtNode * rootWeights;
+    CtxtNode * rootValues;
+    vector<ZZ> leaves;
+    //DBUtility * db;
     CryptoUtility * cy;
 
 private:
-    Node * getPosition(Node * root);
-    void deleteTree(Node * root);
-    void printTree(Node * root);
+    CtxtNode *getPosition(CtxtNode* root);
+    void deleteTree(CtxtNode * root);
+    //void printTree(CtxtNode * root);
     string ZZ2Bytes(const ZZ & x);
     ZZ Bytes2ZZ(const string & x);
 };

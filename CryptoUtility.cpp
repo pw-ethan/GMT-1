@@ -186,11 +186,11 @@ Ctxt * CryptoUtility::Bytes2Ctxt(const string & x){
     return _return;
 }
 
-/*
+
 FHEPubKey *CryptoUtility::getPubKey() {
     return pubkey;
 }
-
+/*
 FHESecKey *CryptoUtility::getSecKey() {
     return seckey;
 }
