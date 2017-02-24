@@ -55,8 +55,15 @@ PTree::~PTree(){
     deleteTree(this->rootValues);
 }
 
-bool PTree::updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2Weights){
-    cout << "[Info] updata PTree" << endl;
+//bool PTree::updatePTree(CtxtWeightsList * cwlist, const uint16_t & numAdd2Weights){
+bool PTree::updatePTree(string strlist)
+{
+    cout << "[Info] update PTree" << endl;
+
+    DSAuth ds;
+    ds.fromString(strlist);
+
+    uint16_t numAdd2Weights = atoi(ds.getSomething("num").c_str());
 
     if(numAdd2Weights != power_two(this->depth)){
         //cerr << "[Error] PTree::updatePTree() -- number of adding to Weights is NOT OK" << endl;
@@ -86,14 +93,10 @@ bool PTree::updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2
     }*/
 
     // update weights tree
-    CtxtSiblingPathNode * pp = pweights->getNext();
+    //CtxtSiblingPathNode * pp = pweights->getNext();
     CtxtNode * node = new CtxtNode(this->cy->getPubKey());
-    cout << "Tag 1" << endl;
-    node->setWeight(pp->getWeight());
-    cout << "Tag 2" << endl;
-    cout << *(this->cy->decrypt(*(pp->getWeight()))) << endl;
-    cout << "Tag 3" << endl;
-    //here
+    Ctxt *pweight = this->cy->Bytes2Ctxt(ds.getSomething("weights-0"));
+    node->setWeight(pweight);
 
     node->setLeftChild(this->rootWeights);
     this->rootWeights->setParent(node);
@@ -107,18 +110,19 @@ bool PTree::updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2
     }
 
     // update right child tree
-    pp = pp->getNext();
+    //pp = pp->getNext();
     node = new CtxtNode(this->cy->getPubKey());
-    node->setWeight(pp->getWeight());
+    pweight = this->cy->Bytes2Ctxt(ds.getSomething("weights-1"));
+    node->setWeight(pweight);
     this->rootWeights->setRightChild(node);
     node->setParent(this->rootWeights);
-    cout << "Tag.1" << endl;
 
     for(uint16_t i = 2; i < numAdd2Weights; i++){
         CtxtNode * position = getPosition(node);
-        pp = pp->getNext();
+        //pp = pp->getNext();
         CtxtNode * tmp = new CtxtNode(this->cy->getPubKey());
-        tmp->setWeight(pp->getWeight());
+        pweight = this->cy->Bytes2Ctxt(ds.getSomething("weights-" + to_string(i)));
+        tmp->setWeight(pweight);
         if(i % 2 == 1){
             position->setRightChild(tmp);
         }else{
@@ -126,7 +130,6 @@ bool PTree::updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2
         }
         tmp->setParent(position);
     }
-    cout << "Tag.2" << endl;
 
     // update values tree
     //string strtmpv = this->cy->Ctxt2Bytes(*(this->cy->encrypt(to_ZZ("0"))));
@@ -167,9 +170,6 @@ bool PTree::updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2
         *topvalue += *(this->rootValues->getWeight());
         *topvalue *= *topweight;
     }
-    cout << "Tag.3" << endl;
-    //*topvalue *= *topweight;
-    cout << "Tag.4" << endl;
 
     node = new CtxtNode(this->cy->getPubKey());
     node->setWeight(topvalue);
@@ -491,9 +491,21 @@ Ctxt * PTree::Bytes2Ctxt(const string & x){
     return _return;
 }*/
 
+ZZ * PTree::test(string stmp)
+{
+    DSAuth ds;
+    ds.fromString(stmp);
+    uint16_t num = atoi(ds.getSomething("num").c_str());
+    ZZ *pweights = new ZZ[num];
+    for(uint16_t i = 0; i < num; i++){
+        Ctxt *tmp = this->cy->Bytes2Ctxt(ds.getSomething("weights-"+to_string(i)));
+        pweights[i] = (*(this->cy->decrypt(*tmp)))[0] ;
+    }
+    return pweights;
+}
 
-
-string PTree::test(){
+string PTree::test(Ctxt * tmp){
+    cout << *(this->cy->decrypt(*tmp)) << endl;
     //string strv = this->db->queryDB("values_p", this->rootValues->getID());
     //Ctxt * cv = this->cy->Bytes2Ctxt(strv);
     //ZZX * pv = this->cy->decrypt(*cv);

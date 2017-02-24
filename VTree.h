@@ -24,9 +24,10 @@
 #include "ZZNode.h"
 //#include "DBUtility.h"
 #include "CryptoUtility.h"
-//#include "DSAuth.h"
+#include "DSAuth.h"
 #include "Auth.h"
 #include "CtxtSiblingPathNode.h"
+#include "CtxtWeightsList.h"
 
 using namespace NTL;
 using namespace std;
@@ -55,7 +56,12 @@ public:
     // generate weights(ZZ type)
     ZZ * genWeights(const int num);
 
-    CtxtSiblingPathNode * genCtxtWeights(const ZZ *weights, uint16_t numAdd2Weights);
+    void genCtxtWeights(const ZZ *weights, uint16_t numAdd2Weights,CtxtSiblingPathNode* pweights);
+
+    CtxtWeightsList* genCtxtWeights(const ZZ *weights, uint16_t numAdd2Weights);
+
+    string CtxtWeights2Str(const CtxtWeightsList *cwlist);
+
     // encrypt weights and publish them
     void weights2Str(const ZZ * weigths, string * strWeights, uint16_t numAdd2Weights);
     //void setEvidence(const ZZ & value);
@@ -85,6 +91,9 @@ private:
 public:
     string ZZ2Bytes(const ZZ & x);
     ZZ Bytes2ZZ(const string & x);
+    
+    string test();
+    void test(Ctxt* tmp);
 };
 
 #endif

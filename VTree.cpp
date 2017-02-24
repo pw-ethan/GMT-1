@@ -34,12 +34,13 @@
 VTree::VTree(){
     this->depth = 0;
     this->maxElems = 0;
-    clear(this->evidence);
+    clear(this->evidence); // evidence <-- 0
     this->numElems = 0;
     this->root = new ZZNode(to_ZZ(0));
     //this->db = new DBUtility();
     //this->db->initDB(VHOST, VUSER, VPWD, VDB_NAME);
     this->cy = new CryptoUtility();
+    //this->cy->initFHEByProver();
     this->cy->initFHEByVerifier();
 }
 
@@ -394,9 +395,28 @@ void VTree::weights2Str(const ZZ * weights, string * strWeights, uint16_t numAdd
     }
 }
 
-CtxtSiblingPathNode * VTree::genCtxtWeights(const ZZ * weights, uint16_t numAdd2Weights){
-    CtxtSiblingPathNode * _return = new CtxtSiblingPathNode(cy->getPubKey());
-    CtxtSiblingPathNode *pp = _return;
+CtxtWeightsList* VTree::genCtxtWeights(const ZZ * weights, uint16_t numAdd2Weights)
+{
+    CtxtWeightsList *cwlist = new CtxtWeightsList(this->cy->getPubKey(), numAdd2Weights);
+    for(uint16_t i = 0; i < numAdd2Weights; i++){
+        cwlist->cweights[i] = *(this->cy->encrypt(weights[i]));
+    }
+    return cwlist;
+}
+
+string VTree::CtxtWeights2Str(const CtxtWeightsList *cwlist)
+{
+    DSAuth ds;
+    ds.putSomething("num", to_string(cwlist->num));
+    for(uint16_t i = 0; i < cwlist->num; i++){
+        ds.putSomething("weights-" + to_string(i), this->cy->Ctxt2Bytes(cwlist->cweights[i]));
+    }
+    return ds.toString();
+}
+
+void VTree::genCtxtWeights(const ZZ * weights, uint16_t numAdd2Weights, CtxtSiblingPathNode* pweights){
+    //CtxtSiblingPathNode * _return = new CtxtSiblingPathNode(cy->getPubKey());
+    CtxtSiblingPathNode *pp = pweights;
     for(uint16_t i = 0; i < numAdd2Weights; i++){
         CtxtSiblingPathNode * tmp = new CtxtSiblingPathNode(cy->getPubKey());
         tmp->setWeight(cy->encrypt(weights[i]));
@@ -404,7 +424,7 @@ CtxtSiblingPathNode * VTree::genCtxtWeights(const ZZ * weights, uint16_t numAdd2
         pp = tmp;
     }
 
-    return _return;
+    //return _return;
 }
 
 uint16_t VTree::getDepth(){
@@ -483,3 +503,15 @@ ZZ VTree::Bytes2ZZ(const string & x){
     return ZZ(0);
 }
 
+string VTree::test()
+{
+    ZZ tmp = to_ZZ("12");
+    Ctxt *ctmp = this->cy->encrypt(tmp);
+    string stmp = this->cy->Ctxt2Bytes(*ctmp);
+    return stmp;
+}
+
+void VTree::test(Ctxt* tmp)
+{
+    cout << *(this->cy->decrypt(*tmp)) << endl;
+}

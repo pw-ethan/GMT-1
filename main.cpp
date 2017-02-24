@@ -49,6 +49,20 @@
 using namespace std;
 using namespace NTL;
 
+uint16_t getNumAdd2Weights(const uint16_t& depth)
+{
+    return power_two(depth);
+}
+
+ZZ * genWeights(const uint16_t& num)
+{
+    ZZ *_return = new ZZ[num];
+    for(uint16_t i = 0; i < num; i++){
+        _return[i] = to_ZZ(i + num);
+    }
+    return _return;
+}
+
 
 int main()
 {
@@ -65,6 +79,22 @@ int main()
 
     // Initialization - Prover's Tree
     PTree *pt = new PTree();
+
+    /*uint16_t num = getNumAdd2Weights(2);
+
+    ZZ *pweights = genWeights(num);
+
+    for(uint16_t i = 0; i < num; i++){
+        cout << pweights[i] << endl;
+    }
+
+    CtxtWeightsList *cwlist = vt->genCtxtWeights(pweights, num);
+    string strtmp = vt->CtxtWeights2Str(cwlist);
+
+    pt->test(strtmp);
+
+    delete cwlist;*/
+
     clock_t time_point_one, time_point_two;
     int time_takes = 0;
     int time_native = 0;
@@ -78,8 +108,8 @@ int main()
         // Check whether it is full, if so, update
         if(vt->isFull()){
             // Generate weights(ZZ type)
-            uint16_t numAdd2Weights = vt->getNumAdd2Weights();
-            ZZ * weights = vt->genWeights(numAdd2Weights);
+            uint16_t numAdd2Weights = getNumAdd2Weights(vt->getDepth());
+            ZZ * weights = genWeights(numAdd2Weights);
 
             // Update Verifier
             vt->updateVTree(weights, numAdd2Weights);
@@ -88,10 +118,17 @@ int main()
             // Encrypt weights and publish
             //string strWeights[numAdd2Weights];
             //vt->weights2Str(weights, strWeights, numAdd2Weights);
-            CtxtSiblingPathNode* pweights = vt->genCtxtWeights(weights, numAdd2Weights);
-            cout << *(vt->cy->decrypt(*(pweights->getNext()->getWeight())));
+            //CtxtSiblingPathNode* pweights = new CtxtSiblingPathNode(vt->cy->getPubKey());
+            //CtxtWeightsList *cwlist = vt->genCtxtWeights(weights, numAdd2Weights);
+            //cout << *(vt->cy->decrypt((cwlist->cweights[0]))) << endl;
+            // correct before
+
+            CtxtWeightsList *cwlist = vt->genCtxtWeights(weights, numAdd2Weights);
+            string strlist = vt->CtxtWeights2Str(cwlist);
+            delete cwlist;
+
             // Update Prover
-            pt->updatePTree(pweights, numAdd2Weights);
+            pt->updatePTree(strlist);
             if(i > 1){
                 cout << endl;
                 cout << "data num : " << vt->getNumElems() << endl;
@@ -114,6 +151,7 @@ int main()
         pt->addValue(value);
         time_point_two = clock();
         time_takes += time_point_two - time_point_one;
+
         // random query
         /*if(i > 2 && isItTime()){
             string result = pt->queryValue(i - 1);
@@ -245,18 +283,21 @@ int main()
 
 #ifdef DEBUG_CRYPTO
 
-    VTree *vt = new VTree();
+    //VTree *vt = new VTree();
 
-    CryptoUtility * cy = new CryptoUtility();
-    cy->initFHE();
+    CryptoUtility* cy1 = new CryptoUtility();
+    cy1->initFHEByVerifier();
+
+    CryptoUtility* cy2 = new CryptoUtility();
+    cy2->initFHEByVerifier();
 
     clock_t timePointA, timePointB;
-    //timePointA = clock();
+    timePointA = clock();
 
     int timeTakes = 0;
-
+/*
     ZZ tmp = to_ZZ("123");
-    Ctxt * ctmp = cy->encrypt(tmp);
+    Ctxt * ctmp = cy1->encrypt(tmp);
 
     ZZ * datas = vt->genWeights(32);
     for(int i = 0; i < 7; i++){
@@ -270,35 +311,29 @@ int main()
         //cout << *pa << endl;
     }
     cout << "+ time : " << (double) timeTakes / CLOCKS_PER_SEC / 7 << " secs." << endl;
+*/
     //timePointB = clock();
     //cout << "en & de takes - " << (double)(timePointB - timePointA) / CLOCKS_PER_SEC / 32 << " secs." << endl;
-/*
-    CryptoUtility * cyp = new CryptoUtility();
-    cyp->initFHEByProver();
 
-    ZZ a = to_ZZ("12");
-    cout << "a: " << a << endl;
+    ZZ zztmp = to_ZZ("12");
+    cout << "zztmp: " << zztmp << endl;
 
-    Ctxt * pct = cyp->encrypt(a);
-    *pct *= *pct;
+    Ctxt * ctxttmp1 = cy1->encrypt(zztmp);
 
-    string sct = cyp->Ctxt2Bytes(*pct);
-    
-    cout << sct.length() << endl;
+    string sctxttmp = cy1->Ctxt2Bytes(*ctxttmp1);
 
-    CryptoUtility * cyv = new CryptoUtility();
-    cyv->initFHEByVerifier();
+    cout << sctxttmp.length() << endl;
 
-    Ctxt *pct2 = cyv->Bytes2Ctxt(sct);
+    Ctxt *ctxttmpt2 = cy2->Bytes2Ctxt(sctxttmp);
 
-    ZZX * ppt = cyv->decrypt(*pct2);
-    cout << *ppt << endl;
+    ZZX * zzxtmp = cy2->decrypt(*ctxttmpt2);
+    cout << *zzxtmp << endl;
 
-    delete cyp;
-    delete cyv;
-*/
-    delete cy;
-    delete vt;
+    timePointB = clock();
+    cout << (double)(timePointB - timePointA) / CLOCKS_PER_SEC << endl;
+
+    delete cy1;
+    delete cy2;
 
 #endif
 

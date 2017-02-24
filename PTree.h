@@ -23,8 +23,9 @@
 
 #include "CtxtNode.h"
 #include "CryptoUtility.h"
+#include "CtxtWeightsList.h"
 //#include "DBUtility.h"
-//#include "DSAuth.h"
+#include "DSAuth.h"
 #include "Auth.h"
 
 class PTree
@@ -34,7 +35,9 @@ public:
     virtual ~PTree();
 
     /* update Prover's weights tree and values tree */
-    bool updatePTree(CtxtSiblingPathNode * pweights, const uint16_t & numAdd2Weights);
+    bool updatePTree(CtxtWeightsList* cwlist, const uint16_t & numAdd2Weights);
+    bool updatePTree(string strlist);
+
     /* add value */
     bool addValue(const ZZ & value);
     /* query value */
@@ -46,7 +49,8 @@ public:
     uint16_t getNumElems();
     uint16_t getDepth();
 
-    string test();
+    string test(Ctxt * tmp);
+    ZZ * test(string stmp);
 
 private:
     uint16_t depth;
