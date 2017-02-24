@@ -1,6 +1,8 @@
 #include <iostream>
 #include <NTL/ZZ.h>
 #include <time.h>
+#include <vector>
+#include <algorithm>
 
 #include "crypto_fhe_utility.h"
 #include "v_tree.h"
@@ -15,6 +17,13 @@ using namespace NTL;
 
 int main()
 {
+
+    vector<int> vec;
+    int icheck[] = {2, 4, 5, 8, 10, 14, 18, 32, 40, 50, 60, 72, 100, 110, 120};
+    for(int i = 0; i < sizeof(icheck); i++){
+        vec.push_back(icheck[i]);
+    }
+    vector<int>::iterator it;
 
     // 初始化全同态加密算法，生成公私钥对
     crypto_fhe_utility *cy = new crypto_fhe_utility();
@@ -57,9 +66,7 @@ int main()
     int time_native = 0;
 
     // 随机生成数据，将数据发送给 verifier
-    int num = 4;//power_two(TREE_LEVELS - 1);//leaves of the tree
-
-    cin >> num;
+    int num = power_two(TREE_LEVELS - 1);//leaves of the tree
 
     srand((unsigned)time(NULL));
     for(int i = 0; i<num;i++){
@@ -81,16 +88,20 @@ int main()
         pt->pt_add(ct_value);
         time_point_two = clock();
         time_takes += time_point_two - time_point_one;
-        
-        cout << endl;
-    }
-    //time_point_two = clock();
-    //time_takes += time_point_two - time_point_one;
-    double sumTime = (double)(time_takes) / CLOCKS_PER_SEC;
-    cout << "Total time : " << sumTime << " secs." << endl;
-    cout << "Average time : " << sumTime / num << " secs." << endl;
-    cout << "Native time : " << (double)(time_native) / CLOCKS_PER_SEC / num * 2 << " secs." << endl;
 
+        cout << endl;
+
+        it = find(vec.begin(), vec.end(), i+1);
+        if(it != vec.end()){
+            //time_point_two = clock();
+            //time_takes += time_point_two - time_point_one;
+            cout << "Data num : " << i+1 << endl;
+            double sumTime = (double)(time_takes) / CLOCKS_PER_SEC;
+            cout << "Total time : " << sumTime << " secs." << endl;
+            cout << "Average time : " << sumTime / (i+1) << " secs." << endl;
+            cout << "Native time : " << (double)(time_native) / CLOCKS_PER_SEC / num * 2 << " secs." << endl;
+        }
+    }
     //cout << "verifier tree :" << endl;
     //vt->vt_print();
 

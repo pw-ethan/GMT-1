@@ -1,5 +1,5 @@
 CXX := g++
-COMPILE_FLAGS := -I/. -g -Wall -fexceptions
+COMPILE_FLAGS := -I/. -g -Wall -fexceptions #-std=c++11
 LIBS := ./libs/fhe/fhe.a -lntl -lgmp -lmysqlclient -lmd
 LINK_FLAGS := -L/.
 
