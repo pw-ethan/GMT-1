@@ -19,7 +19,7 @@ int main()
 {
 
     vector<int> vec;
-    int icheck[] = {2, 4, 5, 8, 10, 14, 18, 32, 40, 50, 60, 72, 100, 110, 120};
+    int icheck[] = {2, 5, 8, 11, 13, 20, 29, 33, 37, 41, 44, 51, 55, 61, 64};
     for(int i = 0; i < sizeof(icheck); i++){
         vec.push_back(icheck[i]);
     }
