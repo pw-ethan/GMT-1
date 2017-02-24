@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <NTL/ZZ.h>
+#include <algorithm>
 
 #include "common.h"
 #include "memory_dump.h"
@@ -72,6 +73,12 @@ int main()
 
 #ifdef DEBUG_C
 
+    vector<uint16_t> vec;
+    uint16_t icheck[] = {2, 4, 5, 8, 10, 14, 18, 21, 27, 32, 38, 40, 43, 50, 56, 60, 62, 72, 100, 110, 120, 124};
+    for(uint16_t i = 0; i < 20; i++){
+        vec.push_back(icheck[i]);
+    }
+    vector<uint16_t>::iterator it;
     srand((unsigned)(time(NULL)));
 
     // Initialization - Verifier's Tree
@@ -101,7 +108,7 @@ int main()
 
     uint16_t numA = 4;
 
-    //cin >> numA;
+    cin >> numA;
 
     // 16 times insertion and some times random query
     for(uint16_t i = 0; i < numA; i++){
@@ -129,15 +136,8 @@ int main()
 
             // Update Prover
             pt->updatePTree(strlist);
-            if(i > 1){
-                cout << endl;
-                cout << "data num : " << vt->getNumElems() << endl;
-                double sumtime = (double) time_takes / CLOCKS_PER_SEC;
-                cout << "Total time : " << sumtime << " secs." << endl;
-                cout << "Average time : " << sumtime / vt->getNumElems() << " secs." << endl;
-                cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / numA << endl << endl;
-            }
 
+            delete[] weights;
         }
         // Insert value to Verifier and Prover
         ZZ value = genRandomValue();
@@ -151,6 +151,16 @@ int main()
         pt->addValue(value);
         time_point_two = clock();
         time_takes += time_point_two - time_point_one;
+        
+        it = find(vec.begin(), vec.end(), i+1);
+        if(it != vec.end()){
+                cout << endl;
+                cout << "data num : " << vt->getNumElems() << endl;
+                double sumtime = (double) time_takes / CLOCKS_PER_SEC;
+                cout << "Total time : " << sumtime << " secs." << endl;
+                cout << "Average time : " << sumtime / vt->getNumElems() << " secs." << endl;
+                cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / numA << endl << endl;
+            }
 
         // random query
         /*if(i > 2 && isItTime()){
