@@ -17,10 +17,10 @@ using namespace NTL;
 
 int main()
 {
-
+    cout << sizeof(ZZ) << endl;
     vector<int> vec;
     int icheck[] = {2, 5, 8, 11, 13, 20, 29, 33, 37, 41, 44, 51, 55, 61, 64};
-    for(int i = 0; i < sizeof(icheck); i++){
+    for(int i = 0; i != sizeof(icheck) / sizeof(int); i++){
         vec.push_back(icheck[i]);
     }
     vector<int>::iterator it;
@@ -73,24 +73,21 @@ int main()
         int value = rand()%WEIGHT_BOUNDARY + 1;
         cout << "append "<< i  << "th value " << value << " to verifier & prover tree." << endl;
 
-        time_point_one = clock();
+//        time_point_one = clock();
         vt->vt_add(to_ZZ(value));
-        time_point_two = clock();
-        time_takes += time_point_two - time_point_one;
-        time_native += time_point_two - time_point_one;
-
-        cout << endl;
+//        time_point_two = clock();
+//        time_takes += time_point_two - time_point_one;
+//        time_native += time_point_two - time_point_one;
 
         Ctxt ct_value(*publicKey);
         publicKey->Encrypt(ct_value, to_ZZX(value));
 
-        time_point_one = clock();
+//        time_point_one = clock();
         pt->pt_add(ct_value);
-        time_point_two = clock();
-        time_takes += time_point_two - time_point_one;
+//        time_point_two = clock();
+//        time_takes += time_point_two - time_point_one;
 
-        cout << endl;
-
+/*
         it = find(vec.begin(), vec.end(), i+1);
         if(it != vec.end()){
             //time_point_two = clock();
@@ -100,8 +97,54 @@ int main()
             cout << "Total time : " << sumTime << " secs." << endl;
             cout << "Average time : " << sumTime / (i+1) << " secs." << endl;
             cout << "Native time : " << (double)(time_native) / CLOCKS_PER_SEC / num * 2 << " secs." << endl;
+
+        }
+        */
+    }
+    
+    int nvs = 0;
+    for(int k = 0; k < num; ++k){
+        // 查询数据
+        int index = k;
+        time_point_one = clock();
+        auth_ds *auth = pt->pt_query(index);
+        time_point_two = clock();
+        time_takes += time_point_two - time_point_one;
+
+        ZZX query_data;
+        secretKey->Decrypt(query_data, auth->sibling_paths[TREE_LEVELS - 1]);
+//        cout << "\nquery data is " << query_data[0] << endl;
+
+//        cout << "\nsilibing path : " << endl;
+//        for(int j = 0; j < TREE_LEVELS - 1; j++){
+//            ZZX sp;
+//            secretKey->Decrypt(sp, auth->sibling_paths[j]);
+//            cout << "level[" << TREE_LEVELS - 1 - j << "] : " << sp[0] << endl;
+//        }
+
+
+        // verify
+        time_point_one = clock();
+        int result = vt->vt_verify(index, auth);
+        time_point_two = clock();
+        time_takes += time_point_two - time_point_one;
+        time_native += time_point_two - time_point_one;
+
+        nvs += (result == 1 ? 1 : 0);
+//        cout << "\nverify result : " << (result == 1 ? "SUCCEED!" : "FAILED!") << endl;
+
+        it = find(vec.begin(), vec.end(), index+1);
+        if(it != vec.end()){
+            cout << "Data num : " << index+1 << endl;
+            cout << "verify succeed num : " << nvs << endl;
+            double sumTime = (double)(time_takes) / CLOCKS_PER_SEC;
+            cout << "Total time : " << sumTime << " secs." << endl;
+            cout << "Average time : " << sumTime / (index+1) << " secs." << endl;
+            cout << "Native time : " << (double)(time_native) / CLOCKS_PER_SEC / (index+1) << " secs." << endl;
+
         }
     }
+
     //cout << "verifier tree :" << endl;
     //vt->vt_print();
 
@@ -138,13 +181,20 @@ int main()
 */
 
     // 释放内存
-    publicKey = NULL;
-    secretKey = NULL;
-    delete publicKey;
-    delete secretKey;
-    
-    delete cy;
-
+    /*
+    if(cy){
+        delete cy;
+        cy = NULL;
+    }
+    if(publicKey){
+        delete publicKey;
+        publicKey = NULL;
+    }
+    if(secretKey){
+        delete secretKey;
+        secretKey = NULL;
+    }
+*/
 
 /*
     MyDB *db = new MyDB();
