@@ -21,7 +21,7 @@
 
 #include "VTree.h"
 #include "common.h"
-//#include "Base64.h"
+#include "Base64.h"
 #include "config.h"
 
 #include "memory_dump.h"
@@ -193,7 +193,7 @@ void VTree::printVTree(){
     vector<ZZNode *>().swap(vec);
 }
 
-bool VTree::verify(const uint16_t index, Auth * auth){
+bool VTree::verify(const uint16_t index, AuthVerify &auth){
     bool _return = true;
 
     uint16_t offset = index;
@@ -224,9 +224,8 @@ bool VTree::verify(const uint16_t index, Auth * auth){
 */
     //ZZX master = to_ZZX(Bytes2ZZ(ds.getSomething("query-value")));
     //ZZX slave = to_ZZX(Bytes2ZZ(ds.getSomething("brother-value")));
-    cout << "[Info] query value-" << index << " : " << auth->getQueryValue();
-    ZZX master = to_ZZX(auth->getQueryValue());
-    ZZX slave = to_ZZX(auth->getBrotherValue());
+    ZZX master = to_ZZX(auth.queryValue);
+    ZZX slave = to_ZZX(auth.brotherValue);
     ZZX master_weight;
     ZZX slave_weight;
 
@@ -277,12 +276,10 @@ bool VTree::verify(const uint16_t index, Auth * auth){
     offset /= 2;
 
     //uint16_t num = stoi(ds.getSomething("num"));
-    uint16_t num = auth->getNum();
-    CtxtSiblingPathNode * siblingPath = auth->getSiblingPath();
+    uint16_t num = auth.num;
     for(uint16_t i = 0; i < num; i++){
         //Ctxt * ctmp = this->cy->Bytes2Ctxt(ds.getSomething("sibling-path-" + to_string(i)));
-        siblingPath = siblingPath->getNext();        
-        slave = *(this->cy->decrypt(*(siblingPath->getWeight())));
+        slave = auth.innodes[i];
 
         //cout << "slave-" << slave << endl;
 
@@ -346,8 +343,6 @@ bool VTree::verify(const uint16_t index, Auth * auth){
 
     master *= to_ZZX(this->root->getWeight());
 
-    //cout << "master-" << master << endl << endl;
-
     //db->endSQL(_return);
 
     if(_return && (master[0] % 1013) == evidence % 1013){
@@ -356,6 +351,24 @@ bool VTree::verify(const uint16_t index, Auth * auth){
     return false;
 }
 
+AuthVerify VTree::Str2AuthVerify(const string &str)
+{
+    DSAuth ds;
+    ds.fromString(str);
+    int num = stoi(ds.getSomething("num"));
+    ZZ qvalue = Bytes2ZZ(ds.getSomething("query-value"));
+    ZZ bvalue = Bytes2ZZ(ds.getSomething("brother-value"));
+    vector<ZZX> v;
+    for(int i = 0; i < num; i++){
+        Ctxt * ctmp = this->cy->Bytes2Ctxt(ds.getSomething("sibling-path-" + to_string(i)));
+        ZZX tmp = *(this->cy->decrypt(*ctmp));
+        v.push_back(tmp);
+        delete ctmp;
+    }
+    AuthVerify ret(num,qvalue, bvalue);
+    ret.innodes = v;
+    return ret;
+}
 
 ZZ VTree::getEvidence(){
     return this->evidence;
@@ -489,18 +502,16 @@ void VTree::PreOrderBiTree(Node * root){
 }*/
 
 string VTree::ZZ2Bytes(const ZZ & x){
-    /*unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
+    unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
     BytesFromZZ(pstr, x, sizeof(ZZ));
     string _return = base64_encode(pstr, sizeof(ZZ));
-    return _return;*/
-    return "";
+    return _return;
 }
 
 ZZ VTree::Bytes2ZZ(const string & x){
-    /*string y = base64_decode(x);
+    string y = base64_decode(x);
     ZZ _return = ZZFromBytes((const unsigned char *)(y.c_str()), sizeof(ZZ));
-    return _return;*/
-    return ZZ(0);
+    return _return;
 }
 
 string VTree::test()

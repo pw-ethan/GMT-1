@@ -19,10 +19,11 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include "stdio.h"
 
 #include "common.h"
 #include "CtxtSiblingPathNode.h"
-//#include "Base64.h"
+#include "Base64.h"
 
 #define PHOST "localhost"
 #define PUSER "root"
@@ -273,11 +274,10 @@ bool PTree::addValue(const ZZ & value){
     return _return;
 }
 
-Auth * PTree::queryValue(const uint16_t & index){
+string PTree::queryValue(const uint16_t & index){
     if(index > numElems){
-        //cerr << "[Error] PTree::queryValue() -- illegal parameter. " << endl;
         LOGERROR("[Error] PTree::queryValue() -- illegal parameter.");
-        return NULL;
+        return "";
     }
 
     uint16_t offset = index;
@@ -305,8 +305,9 @@ Auth * PTree::queryValue(const uint16_t & index){
     //bool _res = true;
     //this->db->startSQL();
     //string strWeights[numOfCorner];
-    CtxtSiblingPathNode *cspNode = new CtxtSiblingPathNode(NULL);
-    CtxtSiblingPathNode *pp = cspNode;
+    Auth auth(numOfCorner, leaves[index], leaves[(index % 2 == 0) ? (index + 1) : (index - 1)]);
+    auth.hdr = new CtxtLinkListNode();
+    CtxtLinkListNode *pp = auth.hdr;
     for(uint16_t i = 0; i < numOfCorner; i++){
         CtxtNode * brother = NULL;
         if(LeftOrRight[numOfCorner - i - 1]){
@@ -314,10 +315,8 @@ Auth * PTree::queryValue(const uint16_t & index){
         }else{
             brother = pointOfValues->getParent()->getRightChild();
         }
-        CtxtSiblingPathNode *cspnodetmp = new CtxtSiblingPathNode(this->cy->getPubKey());
-        cspnodetmp->setWeight(brother->getWeight());
-        pp->setNext(cspnodetmp);
-        pp = cspnodetmp;
+        pp->next = new CtxtLinkListNode(brother->getWeight());
+        pp = pp->next;
         /*
         strWeights[i] = this->db->queryDB("values_p", brother->getID());
         if(strWeights[i].empty()){
@@ -346,13 +345,22 @@ Auth * PTree::queryValue(const uint16_t & index){
         }
         return ds.toString();
     }*/
-    Auth *auth = new Auth();
-    auth->setNum(numOfCorner);
-    auth->setQueryValue(this->leaves[index]);
-    auth->setBrotherValue(this->leaves[(index % 2 == 0) ? (index + 1) : (index - 1)]);
-    auth->setSiblingPath(cspNode);
+    return Auth2Str(&auth);
+}
 
-    return auth;
+string PTree::Auth2Str(const Auth *auth){
+    DSAuth ds;
+    ds.putSomething("num", to_string(auth->num));
+    ds.putSomething("query-value", ZZ2Bytes(auth->queryValue));
+    ds.putSomething("brother-value", ZZ2Bytes(auth->brotherValue));
+    CtxtLinkListNode *p = auth->hdr->next;
+    for(int i = 0; i < auth->num; ++i){
+        if(p){
+            ds.putSomething("sibling-path-" + to_string(i), this->cy->Ctxt2Bytes(*(p->pweight)));
+            p = p->next;
+        }
+    }
+    return ds.toString();
 }
 
 void PTree::printPTree(){
@@ -458,18 +466,16 @@ void PTree::deleteTree(CtxtNode * root){
 }
 
 string PTree::ZZ2Bytes(const ZZ & x){
-    /*unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
+    unsigned char pstr[sizeof(ZZ)]; // size of ZZ is 8
     BytesFromZZ(pstr, x, sizeof(ZZ));
     string _return = base64_encode(pstr, sizeof(ZZ));
-    return _return;*/
-    return "";
+    return _return;
 }
 
 ZZ PTree::Bytes2ZZ(const string & x){
-    /*string y = base64_decode(x);
+    string y = base64_decode(x);
     ZZ _return = ZZFromBytes((const unsigned char *)(y.c_str()), sizeof(ZZ));
-    return _return;*/
-    return to_ZZ(0);
+    return _return;
 }
 
 /*
@@ -498,7 +504,7 @@ ZZ * PTree::test(string stmp)
     uint16_t num = atoi(ds.getSomething("num").c_str());
     ZZ *pweights = new ZZ[num];
     for(uint16_t i = 0; i < num; i++){
-        Ctxt *tmp = this->cy->Bytes2Ctxt(ds.getSomething("weights-"+to_string(i)));
+//        Ctxt *tmp = this->cy->Bytes2Ctxt(ds.getSomething("weights-"+to_string(i)));
         //pweights[i] = (*(this->cy->decrypt(*tmp)))[0] ;
     }
     return pweights;

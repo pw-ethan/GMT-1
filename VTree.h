@@ -19,6 +19,7 @@
 #include <NTL/ZZ.h>
 #include <stdint.h>
 #include <string>
+#include <vector>
 #include "./libs/fhe/FHE.h"
 
 #include "ZZNode.h"
@@ -26,6 +27,7 @@
 #include "CryptoUtility.h"
 #include "DSAuth.h"
 #include "Auth.h"
+#include "AuthVerify.h"
 #include "CtxtSiblingPathNode.h"
 #include "CtxtWeightsList.h"
 
@@ -45,7 +47,9 @@ public:
     /* Traversing the weights tree by level */
     void printVTree();
     /* Verify query result using DSAuth */
-    bool verify(const uint16_t index, Auth * auth);
+    bool verify(const uint16_t index, AuthVerify & auth);
+
+    AuthVerify Str2AuthVerify(const string &str);
 
     ZZ getEvidence();
     

@@ -73,12 +73,15 @@ int main()
 
 #ifdef DEBUG_C
 
+
     vector<uint16_t> vec;
     uint16_t icheck[] = {2, 4, 5, 8, 10, 14, 18, 21, 27, 32, 38, 40, 43, 50, 56, 60, 62, 72, 100, 110, 120, 124};
     for(uint16_t i = 0; i < 20; i++){
         vec.push_back(icheck[i]);
     }
     vector<uint16_t>::iterator it;
+    int cnt = 0;
+
     srand((unsigned)(time(NULL)));
 
     // Initialization - Verifier's Tree
@@ -87,27 +90,13 @@ int main()
     // Initialization - Prover's Tree
     PTree *pt = new PTree();
 
-    /*uint16_t num = getNumAdd2Weights(2);
-
-    ZZ *pweights = genWeights(num);
-
-    for(uint16_t i = 0; i < num; i++){
-        cout << pweights[i] << endl;
-    }
-
-    CtxtWeightsList *cwlist = vt->genCtxtWeights(pweights, num);
-    string strtmp = vt->CtxtWeights2Str(cwlist);
-
-    pt->test(strtmp);
-
-    delete cwlist;*/
-
     clock_t time_point_one, time_point_two;
     int time_takes = 0;
     int time_native = 0;
 
     uint16_t numA = 4;
 
+    cout << "input num of adding to tree : ";
     cin >> numA;
 
     // 16 times insertion and some times random query
@@ -120,15 +109,6 @@ int main()
 
             // Update Verifier
             vt->updateVTree(weights, numAdd2Weights);
-            //vt->printVTree();
-
-            // Encrypt weights and publish
-            //string strWeights[numAdd2Weights];
-            //vt->weights2Str(weights, strWeights, numAdd2Weights);
-            //CtxtSiblingPathNode* pweights = new CtxtSiblingPathNode(vt->cy->getPubKey());
-            //CtxtWeightsList *cwlist = vt->genCtxtWeights(weights, numAdd2Weights);
-            //cout << *(vt->cy->decrypt((cwlist->cweights[0]))) << endl;
-            // correct before
 
             CtxtWeightsList *cwlist = vt->genCtxtWeights(weights, numAdd2Weights);
             string strlist = vt->CtxtWeights2Str(cwlist);
@@ -143,15 +123,16 @@ int main()
         ZZ value = genRandomValue();
         cout << "[Info] add value-" << i << " : " << value << endl;
 
-        time_point_one = clock();
+//        time_point_one = clock();
         vt->addValue(value);
-        time_point_two = clock();
-        time_native += time_point_two - time_point_one;
+//        time_point_two = clock();
+//        time_native += time_point_two - time_point_one;
 
         pt->addValue(value);
-        time_point_two = clock();
-        time_takes += time_point_two - time_point_one;
-        
+//        time_point_two = clock();
+//        time_takes += time_point_two - time_point_one;
+
+        /*
         it = find(vec.begin(), vec.end(), i+1);
         if(it != vec.end()){
                 cout << endl;
@@ -160,17 +141,37 @@ int main()
                 cout << "Total time : " << sumtime << " secs." << endl;
                 cout << "Average time : " << sumtime / vt->getNumElems() << " secs." << endl;
                 cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / numA << endl << endl;
-            }
+            }*/
 
         // random query
-        /*if(i > 2 && isItTime()){
+        if(i >= 2){
+            time_point_one = clock();
             string result = pt->queryValue(i - 1);
+            time_point_two = clock();
+            time_takes += time_point_two - time_point_one;
 
-            bool res = vt->verify(i - 1, result);
+            AuthVerify auth = vt->Str2AuthVerify(result);
+
+            time_point_one = clock();
+            bool res = vt->verify(i - 1, auth);
+            time_point_two = clock();
+            time_takes += time_point_two - time_point_one;
+            time_native += time_point_two - time_point_one;
+
             cout << "[Info] verify result : " << (res==true ? "Y" : "N") << endl;
-        }*/
-    }
 
+            ++cnt;
+        }
+        it = find(vec.begin(), vec.end(), cnt);
+        if(it != vec.end()){
+            cout << endl;
+            cout << "data num : " << cnt << endl;
+            double sumtime = (double) time_takes / CLOCKS_PER_SEC;
+            cout << "Total time : " << sumtime << " secs." << endl;
+            cout << "Average time : " << sumtime / cnt << " secs." << endl;
+            cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / cnt << endl << endl;
+        }
+    }
 
 
     delete pt;

@@ -41,7 +41,8 @@ public:
     /* add value */
     bool addValue(const ZZ & value);
     /* query value */
-    Auth * queryValue(const uint16_t & index);
+    string queryValue(const uint16_t & index);
+    string Auth2Str(const Auth *auth);
     /* Traversing the weights tree by level */
     void printPTree();
     bool isFull();
