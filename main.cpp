@@ -143,7 +143,7 @@ int main()
                 cout << "Native time : " << (double) time_native / CLOCKS_PER_SEC / numA << endl << endl;
             }*/
 
-        // random query
+        // query
         if(i >= 2){
             time_point_one = clock();
             string result = pt->queryValue(i - 1);
