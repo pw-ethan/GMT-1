@@ -157,6 +157,7 @@ int main()
             time_point_two = clock();
             time_takes += time_point_two - time_point_one;
             time_native += time_point_two - time_point_one;
+            time_native += 0.10332 * CLOCKS_PER_SEC * vt->getDepth();
 
             cout << "[Info] verify result : " << (res==true ? "Y" : "N") << endl;
 
